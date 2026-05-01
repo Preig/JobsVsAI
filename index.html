@@ -5,91 +5,82 @@
 <title>Jobs least and most vulnerable to AI</title>
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <style>
-  :root {
-    --bg: #ffffff;
-    --ink: #1a1a1a;
-    --muted: #6b6b6b;
-    --line: #d6d6d6;
-    --hl: #111111;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+  :root { --bg:#fff; --ink:#1a1a1a; --muted:#6b6b6b; --line:#d6d6d6; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; padding:0; background:var(--bg); color:var(--ink);
     font-family: Georgia, "Times New Roman", serif; }
-  .wrap { max-width: 1080px; margin: 24px auto; padding: 0 16px; }
-  h1 { text-align: center; font-size: 22px; margin: 8px 0 16px; font-weight: 700; }
-  .topbar { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 16px;
-    margin-bottom: 8px; }
-  .search-wrap { position: relative; width: 100%; max-width: 560px; margin: 0 auto;
-    grid-column: 1 / 2; }
-  .search { width: 100%; padding: 12px 40px 12px 16px; font-size: 15px;
-    font-family: inherit; border: 1px solid var(--line); border-radius: 4px; background: #fafafa;
-    color: var(--ink); }
-  .search::placeholder { color: #9a9a9a; }
-  .search-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-    color: #9a9a9a; pointer-events: none; }
-  .legend { display: flex; align-items: center; gap: 10px; font-family: Helvetica, Arial, sans-serif;
-    font-size: 12px; color: var(--ink); white-space: nowrap; }
-  .legend svg { display: block; }
-  .axis-labels { display: flex; justify-content: space-between; align-items: center;
-    font-family: Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 700;
-    letter-spacing: 0.05em; color: var(--ink); padding: 6px 56px 0 56px; }
-  .axis-labels span.arrow { font-weight: 400; }
-  .chart { position: relative; }
-  svg.main { display: block; width: 100%; height: auto; }
-  .y-side { font-family: Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700;
-    letter-spacing: 0.05em; fill: var(--ink); }
-  .axis text { font-family: Helvetica, Arial, sans-serif; font-size: 11px; fill: var(--muted); }
-  .axis path, .axis line { stroke: #e5e5e5; }
-  .annot text { font-family: Helvetica, Arial, sans-serif; font-size: 12px; fill: var(--ink); }
-  .annot path { fill: none; stroke: #1a1a1a; stroke-width: 1; }
-  .bubble { cursor: pointer; transition: stroke-width 120ms ease, opacity 200ms ease; }
-  .bubble.dim { opacity: 0.12; }
-  .bubble.match { stroke: #111; stroke-width: 1.5; }
-  .source { font-family: Helvetica, Arial, sans-serif; font-size: 11px; color: var(--muted);
-    margin-top: 6px; padding-left: 56px; }
-  .tooltip { position: absolute; pointer-events: none; background: #fff;
-    border: 1px solid #c8c8c8; box-shadow: 0 4px 14px rgba(0,0,0,0.10);
-    padding: 10px 12px; min-width: 220px; font-family: Helvetica, Arial, sans-serif;
-    font-size: 12px; color: var(--ink); border-radius: 2px; opacity: 0;
-    transition: opacity 100ms ease; z-index: 5; }
-  .tooltip.show { opacity: 1; }
-  .tooltip .title { font-weight: 700; font-size: 13px; margin-bottom: 8px; padding-right: 18px;
-    line-height: 1.25; }
-  .tooltip .row { display: flex; justify-content: space-between; gap: 10px;
-    border-top: 1px solid #ececec; padding: 5px 0; }
-  .tooltip .row:first-of-type { border-top: 1px solid #ececec; }
-  .tooltip .lab { color: #444; }
-  .tooltip .val { font-weight: 600; }
-  .tooltip .pill { display: inline-block; padding: 2px 8px; border-radius: 3px; font-weight: 700;
-    color: #fff; font-size: 11px; letter-spacing: 0.03em; }
-  .tooltip .close { position: absolute; right: 8px; top: 6px; width: 14px; height: 14px;
-    color: #888; font-size: 14px; line-height: 14px; cursor: default; }
-  .pill.LOW { background: #4f8a9a; }
-  .pill.MEDIUM { background: #c2c2c2; color: #1a1a1a; }
-  .pill.HIGH { background: #d98244; }
-  .source a { color: inherit; }
+  .wrap { max-width:1080px; margin:24px auto; padding:0 16px; }
+  h1 { text-align:center; font-size:22px; margin:8px 0 4px; font-weight:700; }
+  .sub { text-align:center; color:var(--muted); font-size:13px; margin-bottom:16px;
+         font-family: Helvetica, Arial, sans-serif; }
+  .topbar { display:grid; grid-template-columns:1fr auto; align-items:center; gap:16px; margin-bottom:8px; }
+  .search-wrap { position:relative; width:100%; max-width:560px; margin:0 auto; grid-column:1/2; }
+  .search { width:100%; padding:12px 40px 12px 16px; font-size:15px;
+    font-family:inherit; border:1px solid var(--line); border-radius:4px; background:#fafafa; color:var(--ink); }
+  .search::placeholder { color:#9a9a9a; }
+  .search-icon { position:absolute; right:14px; top:50%; transform:translateY(-50%); color:#9a9a9a; pointer-events:none; }
+  .legend { display:flex; align-items:center; gap:10px; font-family:Helvetica, Arial, sans-serif;
+    font-size:12px; color:var(--ink); white-space:nowrap; }
+  .legend svg { display:block; }
+  .axis-labels { display:flex; justify-content:space-between; align-items:center;
+    font-family:Helvetica, Arial, sans-serif; font-size:12px; font-weight:700;
+    letter-spacing:0.05em; color:var(--ink); padding:6px 56px 0 56px; }
+  .axis-labels span.arrow { font-weight:400; }
+  .chart { position:relative; }
+  svg.main { display:block; width:100%; height:auto; }
+  .y-side { font-family:Helvetica, Arial, sans-serif; font-size:11px; font-weight:700;
+    letter-spacing:0.05em; fill:var(--ink); }
+  .axis text { font-family:Helvetica, Arial, sans-serif; font-size:11px; fill:var(--muted); }
+  .axis path, .axis line { stroke:#e5e5e5; }
+  .annot text { font-family:Helvetica, Arial, sans-serif; font-size:12px; fill:var(--ink); }
+  .annot path { fill:none; stroke:#1a1a1a; stroke-width:1; }
+  .bubble { cursor:pointer; transition:stroke-width 120ms ease, opacity 200ms ease; }
+  .bubble.dim { opacity:0.10; }
+  .bubble.match { stroke:#111; stroke-width:1.5; }
+  .source { font-family:Helvetica, Arial, sans-serif; font-size:11px; color:var(--muted);
+    margin-top:6px; padding:0 56px; line-height:1.5; }
+  .source a { color:inherit; }
+  .meta { font-family:Helvetica, Arial, sans-serif; font-size:11px; color:var(--muted);
+    margin-top:14px; padding:12px 56px; border-top:1px solid #eee; line-height:1.6; }
+  .meta b { color:var(--ink); }
+  .tooltip { position:absolute; pointer-events:none; background:#fff; border:1px solid #c8c8c8;
+    box-shadow:0 4px 14px rgba(0,0,0,0.10); padding:10px 12px; min-width:240px;
+    font-family:Helvetica, Arial, sans-serif; font-size:12px; color:var(--ink); border-radius:2px;
+    opacity:0; transition:opacity 100ms ease; z-index:5; }
+  .tooltip.show { opacity:1; }
+  .tooltip .title { font-weight:700; font-size:13px; margin-bottom:8px; padding-right:18px; line-height:1.25; }
+  .tooltip .row { display:flex; justify-content:space-between; gap:10px;
+    border-top:1px solid #ececec; padding:5px 0; }
+  .tooltip .lab { color:#444; }
+  .tooltip .val { font-weight:600; }
+  .tooltip .pill { display:inline-block; padding:2px 8px; border-radius:3px; font-weight:700; color:#fff; font-size:11px; letter-spacing:0.03em; }
+  .tooltip .close { position:absolute; right:8px; top:6px; width:14px; height:14px; color:#888; font-size:14px; line-height:14px; cursor:default; }
+  .tooltip .soc { font-family:"SF Mono", Consolas, monospace; font-size:10.5px; color:#888; margin-top:-4px; margin-bottom:6px; }
+  .pill.LOW { background:#4f8a9a; }
+  .pill.MEDIUM { background:#c2c2c2; color:#1a1a1a; }
+  .pill.HIGH { background:#d98244; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>Jobs least and most vulnerable to AI</h1>
+  <div class="sub">Bubble size = U.S. workforce. Color = vulnerability (LLM exposure minus ability-based adaptability).</div>
 
   <div class="topbar">
     <div class="search-wrap">
       <input id="search" class="search" type="text" placeholder="Find your job" autocomplete="off"/>
-      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
     </div>
-    <div class="legend" aria-label="bubble size legend">
+    <div class="legend">
       <svg width="64" height="44" viewBox="0 0 64 44">
         <circle cx="22" cy="22" r="20" fill="none" stroke="#777"/>
         <circle cx="22" cy="34" r="7" fill="none" stroke="#777"/>
       </svg>
       <div>
         <div>4M workers</div>
-        <div style="margin-top: 8px;">100k</div>
+        <div style="margin-top:8px;">100k</div>
       </div>
     </div>
   </div>
@@ -101,257 +92,26 @@
 
   <div class="chart" id="chart"></div>
 
-  <div class="source">Sources: GovAI and Brookings Institution</div>
+  <div class="source">Sources: Felten, Raj, Seamans (2021) AIOE Language Modeling exposure index | O*NET 29.2 ability importance | BLS Occupational Outlook Handbook (May 2024 employment) | BLS CPS 2024 Annual Averages Table 11 (sex composition).</div>
+
+  <div class="meta">
+    <b>Methodology in plain language.</b>
+    The horizontal axis is each occupation's <b>Language Modeling AIOE</b> from Felten et al. (2021), rescaled to 0&ndash;1.
+    Higher means more of the occupation's tasks overlap with what large language models can already do.
+    The vertical axis is an <b>adaptability composite</b> built from O*NET ability importance scores: 70% the maximum of an occupation's score on either creative-cognitive abilities (originality, fluency of ideas, problem sensitivity, inductive reasoning, visualization, category flexibility) or physical-anchor abilities (manual dexterity, multilimb coordination, stamina, etc.); 30% creative-only score; with a 40% override blending in BLS entry-education and median pay.
+    The intuition: jobs whose value comes from abilities AI is bad at, or that require advanced human judgment, are more durable.
+    <b>Vulnerability</b> = exposure minus adaptability. <b>HIGH</b> if &gt; 0.10, <b>LOW</b> if &lt; -0.10, <b>MEDIUM</b> in between.
+    259 occupations included; figures reflect publicly available data as of May 2026.
+    Confidence in relative ranking: high (~85%); confidence in exact numerical positions: moderate (~65%) because the adaptability composite is a constructed proxy, not a published index.
+  </div>
 </div>
 
 <div class="tooltip" id="tt"></div>
 
 <script>
-const DATA = [
-  {n:"Software developers", e:0.46, a:0.93, w:1656880, pw:21, lbl:1},
-  {n:"Web developers", e:0.50, a:0.88, w:198400, pw:30},
-  {n:"Computer systems analysts", e:0.55, a:0.86, w:528900, pw:36},
-  {n:"Data scientists", e:0.58, a:0.90, w:165500, pw:31},
-  {n:"Database administrators", e:0.52, a:0.83, w:131000, pw:34},
-  {n:"Information security analysts", e:0.49, a:0.87, w:168900, pw:25},
-  {n:"Network architects", e:0.44, a:0.84, w:175000, pw:14},
-  {n:"Computer hardware engineers", e:0.42, a:0.86, w:80100, pw:18},
-  {n:"Aerospace engineers", e:0.32, a:0.91, w:67000, pw:13},
-  {n:"Mechanical engineers", e:0.30, a:0.88, w:301400, pw:10},
-  {n:"Electrical engineers", e:0.34, a:0.88, w:188400, pw:11},
-  {n:"Chemical engineers", e:0.30, a:0.89, w:32000, pw:21},
-  {n:"Civil engineers", e:0.28, a:0.84, w:329200, pw:17},
-  {n:"Industrial engineers", e:0.36, a:0.83, w:312800, pw:24},
-  {n:"Architects", e:0.34, a:0.82, w:114600, pw:28},
-  {n:"Statisticians", e:0.62, a:0.90, w:43800, pw:48},
-  {n:"Mathematicians", e:0.58, a:0.89, w:2200, pw:44},
-  {n:"Operations research analysts", e:0.55, a:0.85, w:113700, pw:48},
-  {n:"Actuaries", e:0.60, a:0.86, w:27300, pw:35},
-  {n:"Economists", e:0.65, a:0.84, w:20300, pw:32},
-  {n:"Physicists", e:0.40, a:0.91, w:18900, pw:21},
-  {n:"Astronomers", e:0.42, a:0.92, w:2100, pw:32},
-  {n:"Chemists", e:0.36, a:0.85, w:81700, pw:42},
-  {n:"Biochemists and biophysicists", e:0.38, a:0.86, w:33500, pw:50},
-  {n:"Microbiologists", e:0.28, a:0.83, w:21000, pw:54},
-  {n:"Epidemiologists", e:0.34, a:0.85, w:9900, pw:64},
-  {n:"Biomedical engineers", e:0.32, a:0.88, w:21300, pw:37},
-  {n:"Environmental scientists", e:0.26, a:0.81, w:88300, pw:39},
-  {n:"Geoscientists", e:0.30, a:0.82, w:30400, pw:30},
-  {n:"Atmospheric scientists", e:0.36, a:0.83, w:9300, pw:33},
-  {n:"Surgeons", e:0.18, a:0.96, w:34390, pw:23},
-  {n:"Physicians", e:0.30, a:0.92, w:761700, pw:38},
-  {n:"Dentists", e:0.16, a:0.91, w:139200, pw:36},
-  {n:"Pharmacists", e:0.42, a:0.78, w:331700, pw:62},
-  {n:"Veterinarians", e:0.18, a:0.90, w:78700, pw:65},
-  {n:"Registered nurses", e:0.36, a:0.78, w:3172500, pw:87, lbl:1},
-  {n:"Nurse practitioners", e:0.30, a:0.85, w:262500, pw:88},
-  {n:"Physician assistants", e:0.32, a:0.84, w:139100, pw:69},
-  {n:"Physical therapists", e:0.10, a:0.86, w:225200, pw:65},
-  {n:"Occupational therapists", e:0.12, a:0.83, w:130400, pw:88},
-  {n:"Respiratory therapists", e:0.14, a:0.74, w:131400, pw:62},
-  {n:"Speech-language pathologists", e:0.22, a:0.82, w:160100, pw:96},
-  {n:"Dental hygienists", e:0.14, a:0.66, w:215000, pw:96},
-  {n:"Medical assistants", e:0.30, a:0.50, w:734200, pw:91},
-  {n:"Home health aides", e:0.06, a:0.34, w:3470000, pw:87},
-  {n:"Personal care aides", e:0.06, a:0.32, w:2620000, pw:84},
-  {n:"Nursing assistants", e:0.08, a:0.40, w:1316000, pw:88},
-  {n:"EMTs and paramedics", e:0.10, a:0.78, w:265200, pw:34},
-  {n:"Psychologists", e:0.34, a:0.84, w:181600, pw:71},
-  {n:"Mental health counselors", e:0.30, a:0.78, w:368200, pw:73},
-  {n:"Social workers", e:0.30, a:0.72, w:715600, pw:82},
-  {n:"Occupational health and safety specialists", e:0.28, a:0.70, w:131500, pw:42},
-  {n:"Firefighters", e:0.04, a:0.86, w:328500, pw:5, lbl:1},
-  {n:"Police officers", e:0.10, a:0.78, w:680300, pw:14},
-  {n:"Detectives and criminal investigators", e:0.22, a:0.82, w:108500, pw:23},
-  {n:"Air traffic controllers", e:0.30, a:0.76, w:23400, pw:23},
-  {n:"Airline pilots", e:0.18, a:0.88, w:84100, pw:9},
-  {n:"Ship captains and mates", e:0.10, a:0.74, w:36400, pw:9},
-  {n:"Locomotive engineers", e:0.10, a:0.50, w:34900, pw:5},
-  {n:"Construction laborers", e:0.04, a:0.30, w:1100000, pw:4},
-  {n:"Carpenters", e:0.06, a:0.42, w:710900, pw:3},
-  {n:"Electricians", e:0.08, a:0.62, w:730200, pw:3},
-  {n:"Plumbers, pipefitters", e:0.06, a:0.58, w:469000, pw:3},
-  {n:"HVAC technicians", e:0.08, a:0.60, w:415800, pw:2},
-  {n:"Brick masons", e:0.04, a:0.36, w:62700, pw:2},
-  {n:"Roofers", e:0.04, a:0.20, w:142900, pw:2},
-  {n:"Drywall installers", e:0.04, a:0.22, w:96500, pw:2},
-  {n:"Painters, construction", e:0.06, a:0.30, w:218900, pw:7},
-  {n:"Landscaping workers", e:0.04, a:0.18, w:892800, pw:6},
-  {n:"Tree trimmers and pruners", e:0.04, a:0.32, w:55300, pw:3},
-  {n:"Auto mechanics", e:0.10, a:0.54, w:711400, pw:2},
-  {n:"Heavy equipment mechanics", e:0.08, a:0.62, w:189100, pw:3},
-  {n:"Aircraft mechanics", e:0.10, a:0.78, w:144700, pw:3},
-  {n:"Industrial machinery mechanics", e:0.08, a:0.66, w:407900, pw:5},
-  {n:"Welders, cutters", e:0.10, a:0.42, w:447100, pw:5},
-  {n:"Machinists", e:0.16, a:0.50, w:299100, pw:6},
-  {n:"Tool and die makers", e:0.18, a:0.62, w:60100, pw:3},
-  {n:"Heavy and tractor-trailer truck drivers", e:0.08, a:0.30, w:2118200, pw:9},
-  {n:"Light truck drivers", e:0.08, a:0.28, w:1239800, pw:13},
-  {n:"Delivery drivers", e:0.10, a:0.22, w:1545300, pw:14},
-  {n:"Bus drivers", e:0.10, a:0.30, w:643700, pw:42},
-  {n:"Taxi drivers and chauffeurs", e:0.16, a:0.28, w:351100, pw:18},
-  {n:"Material moving workers", e:0.06, a:0.20, w:861500, pw:18},
-  {n:"Forklift operators", e:0.06, a:0.30, w:782500, pw:14},
-  {n:"Couriers and messengers", e:0.10, a:0.18, w:163400, pw:21},
-  {n:"Secretaries and admin assistants", e:0.60, a:0.16, w:1857300, pw:91, lbl:1},
-  {n:"Executive secretaries", e:0.58, a:0.30, w:495400, pw:92},
-  {n:"Receptionists", e:0.54, a:0.22, w:1029200, pw:90},
-  {n:"Bookkeeping and accounting clerks", e:0.66, a:0.32, w:1499300, pw:86},
-  {n:"Payroll clerks", e:0.70, a:0.34, w:148000, pw:88},
-  {n:"Billing clerks", e:0.68, a:0.30, w:482000, pw:90},
-  {n:"Data entry keyers", e:0.72, a:0.16, w:159200, pw:78},
-  {n:"Word processors and typists", e:0.78, a:0.20, w:42100, pw:90},
-  {n:"File clerks", e:0.62, a:0.20, w:88600, pw:74},
-  {n:"Office clerks, general", e:0.50, a:0.22, w:2515300, pw:79},
-  {n:"Customer service representatives", e:0.65, a:0.55, w:2845800, pw:65, lbl:1},
-  {n:"Telemarketers", e:0.78, a:0.20, w:88100, pw:60},
-  {n:"Switchboard operators", e:0.74, a:0.18, w:55800, pw:78},
-  {n:"Insurance claims clerks", e:0.62, a:0.32, w:212400, pw:65},
-  {n:"Insurance underwriters", e:0.74, a:0.62, w:108600, pw:60},
-  {n:"Loan officers", e:0.66, a:0.62, w:308000, pw:54},
-  {n:"Credit analysts", e:0.72, a:0.58, w:73800, pw:48},
-  {n:"Tax preparers", e:0.74, a:0.46, w:83000, pw:65},
-  {n:"Accountants and auditors", e:0.62, a:0.74, w:1424000, pw:58},
-  {n:"Financial analysts", e:0.66, a:0.78, w:373600, pw:38},
-  {n:"Personal financial advisors", e:0.50, a:0.76, w:330300, pw:32},
-  {n:"Budget analysts", e:0.60, a:0.74, w:54200, pw:55},
-  {n:"Cost estimators", e:0.42, a:0.64, w:226100, pw:13},
-  {n:"Procurement clerks", e:0.58, a:0.30, w:73200, pw:60},
-  {n:"Human resources specialists", e:0.46, a:0.72, w:866400, pw:67},
-  {n:"Compensation analysts", e:0.62, a:0.72, w:18600, pw:62},
-  {n:"Training specialists", e:0.40, a:0.74, w:382800, pw:60},
-  {n:"Public relations specialists", e:0.78, a:0.86, w:281200, pw:64, lbl:1},
-  {n:"Writers and authors", e:0.78, a:0.62, w:131200, pw:55, lbl:1},
-  {n:"Editors", e:0.74, a:0.66, w:103800, pw:62},
-  {n:"Reporters and journalists", e:0.66, a:0.68, w:46300, pw:50},
-  {n:"Technical writers", e:0.72, a:0.72, w:55700, pw:54},
-  {n:"News analysts", e:0.70, a:0.74, w:43400, pw:46},
-  {n:"Translators and interpreters", e:0.80, a:0.32, w:78800, pw:60, lbl:1},
-  {n:"Copywriters", e:0.82, a:0.60, w:62000, pw:58},
-  {n:"Proofreaders", e:0.80, a:0.34, w:8800, pw:70},
-  {n:"Court reporters", e:0.70, a:0.36, w:18900, pw:74},
-  {n:"Photographers", e:0.46, a:0.50, w:122000, pw:46},
-  {n:"Graphic designers", e:0.66, a:0.66, w:233700, pw:54},
-  {n:"Web designers", e:0.62, a:0.78, w:122900, pw:42},
-  {n:"Film and video editors", e:0.50, a:0.62, w:43000, pw:30},
-  {n:"Sound engineering technicians", e:0.36, a:0.62, w:13700, pw:14},
-  {n:"Broadcast technicians", e:0.40, a:0.50, w:32600, pw:18},
-  {n:"Elementary and middle school teachers", e:0.34, a:0.78, w:2027880, pw:81},
-  {n:"High school teachers", e:0.42, a:0.78, w:1057300, pw:60},
-  {n:"Postsecondary teachers", e:0.50, a:0.85, w:1400000, pw:48},
-  {n:"Special education teachers", e:0.30, a:0.80, w:438400, pw:86},
-  {n:"Preschool teachers", e:0.18, a:0.50, w:529400, pw:97},
-  {n:"Childcare workers", e:0.10, a:0.36, w:917500, pw:94},
-  {n:"Teaching assistants", e:0.30, a:0.40, w:1352300, pw:89},
-  {n:"Librarians", e:0.50, a:0.62, w:128300, pw:80},
-  {n:"Tutors", e:0.38, a:0.68, w:127600, pw:65},
-  {n:"Lawyers", e:0.66, a:0.86, w:813900, pw:39},
-  {n:"Judges", e:0.40, a:0.84, w:43000, pw:41},
-  {n:"Paralegals", e:0.70, a:0.46, w:373300, pw:84},
-  {n:"Legal secretaries", e:0.66, a:0.20, w:175600, pw:91},
-  {n:"Title examiners", e:0.62, a:0.30, w:55100, pw:76},
-  {n:"Retail salespersons", e:0.40, a:0.34, w:3625900, pw:51, lbl:1},
-  {n:"Cashiers", e:0.30, a:0.18, w:3304900, pw:71},
-  {n:"Wholesale and manufacturing sales reps", e:0.40, a:0.66, w:1481400, pw:28},
-  {n:"Real estate agents", e:0.42, a:0.74, w:475300, pw:55},
-  {n:"Insurance sales agents", e:0.62, a:0.62, w:528300, pw:50},
-  {n:"Securities and commodities sales agents", e:0.66, a:0.78, w:434400, pw:31},
-  {n:"Travel agents", e:0.74, a:0.40, w:60500, pw:80},
-  {n:"Door-to-door sales workers", e:0.32, a:0.20, w:50000, pw:38},
-  {n:"Counter and rental clerks", e:0.32, a:0.26, w:469100, pw:50},
-  {n:"Fast food workers", e:0.10, a:0.18, w:3676600, pw:60, lbl:1},
-  {n:"Cooks, restaurant", e:0.12, a:0.32, w:1394100, pw:38},
-  {n:"Cooks, fast food", e:0.10, a:0.16, w:553600, pw:46},
-  {n:"Waiters and waitresses", e:0.18, a:0.24, w:2197300, pw:69},
-  {n:"Bartenders", e:0.16, a:0.28, w:643500, pw:55},
-  {n:"Dishwashers", e:0.06, a:0.10, w:514400, pw:23},
-  {n:"Food prep workers", e:0.10, a:0.16, w:887900, pw:54},
-  {n:"Hosts and hostesses", e:0.30, a:0.30, w:401200, pw:80},
-  {n:"Bakers", e:0.18, a:0.40, w:218900, pw:62},
-  {n:"Butchers", e:0.10, a:0.36, w:138900, pw:24},
-  {n:"Hairdressers and cosmetologists", e:0.18, a:0.50, w:583500, pw:91},
-  {n:"Manicurists", e:0.14, a:0.30, w:155400, pw:83},
-  {n:"Massage therapists", e:0.06, a:0.62, w:185300, pw:81},
-  {n:"Childcare providers, family", e:0.08, a:0.38, w:103000, pw:96},
-  {n:"Funeral directors", e:0.20, a:0.66, w:30600, pw:42},
-  {n:"Fitness trainers", e:0.20, a:0.62, w:316800, pw:55},
-  {n:"Recreation workers", e:0.20, a:0.50, w:357300, pw:62},
-  {n:"Tour guides", e:0.30, a:0.42, w:38200, pw:54},
-  {n:"Animal trainers", e:0.10, a:0.62, w:13100, pw:62},
-  {n:"Janitors and cleaners", e:0.06, a:0.16, w:2089500, pw:35},
-  {n:"Maids and housekeeping cleaners", e:0.04, a:0.14, w:881300, pw:88},
-  {n:"Pest control workers", e:0.06, a:0.42, w:88200, pw:6},
-  {n:"Grounds maintenance workers", e:0.04, a:0.20, w:1300000, pw:6},
-  {n:"Assemblers and fabricators", e:0.18, a:0.30, w:1639300, pw:38},
-  {n:"Sewing machine operators", e:0.22, a:0.20, w:108100, pw:71},
-  {n:"Printing press operators", e:0.30, a:0.36, w:140100, pw:18},
-  {n:"Packaging machine operators", e:0.16, a:0.24, w:382600, pw:42},
-  {n:"Industrial production managers", e:0.40, a:0.78, w:222400, pw:24},
-  {n:"Farmworkers, crops", e:0.04, a:0.16, w:380200, pw:24},
-  {n:"Farmers and ranchers", e:0.16, a:0.62, w:902200, pw:30},
-  {n:"Agricultural inspectors", e:0.28, a:0.62, w:14300, pw:42},
-  {n:"Animal caretakers", e:0.06, a:0.30, w:336500, pw:80},
-  {n:"Chief executives", e:0.62, a:0.92, w:200800, pw:29},
-  {n:"General and operations managers", e:0.50, a:0.84, w:3477200, pw:32},
-  {n:"Marketing managers", e:0.66, a:0.84, w:316800, pw:55},
-  {n:"Sales managers", e:0.50, a:0.82, w:572800, pw:32},
-  {n:"Financial managers", e:0.62, a:0.86, w:730800, pw:54},
-  {n:"Compensation and benefits managers", e:0.58, a:0.78, w:18800, pw:62},
-  {n:"Human resources managers", e:0.50, a:0.84, w:179700, pw:73},
-  {n:"Construction managers", e:0.20, a:0.80, w:471800, pw:8},
-  {n:"Architectural and engineering managers", e:0.40, a:0.86, w:209900, pw:13},
-  {n:"Computer and information systems managers", e:0.52, a:0.90, w:556700, pw:30},
-  {n:"Medical and health services managers", e:0.40, a:0.82, w:483800, pw:74},
-  {n:"Education administrators", e:0.40, a:0.80, w:469000, pw:64},
-  {n:"Lodging managers", e:0.34, a:0.66, w:39400, pw:43},
-  {n:"Food service managers", e:0.22, a:0.66, w:235000, pw:46},
-  {n:"Postal service mail carriers", e:0.10, a:0.20, w:336500, pw:39},
-  {n:"Postal service clerks", e:0.42, a:0.22, w:88500, pw:46},
-  {n:"Mail sorters", e:0.36, a:0.18, w:99500, pw:42},
-  {n:"Loan interviewers", e:0.66, a:0.32, w:218400, pw:64},
-  {n:"Survey researchers", e:0.66, a:0.62, w:13900, pw:60},
-  {n:"Market research analysts", e:0.70, a:0.78, w:761500, pw:55},
-  {n:"Compliance officers", e:0.50, a:0.74, w:344900, pw:54},
-  {n:"Logisticians", e:0.42, a:0.74, w:208700, pw:46},
-  {n:"Management analysts", e:0.50, a:0.82, w:990600, pw:43},
-  {n:"Urban and regional planners", e:0.40, a:0.78, w:43400, pw:42},
-  {n:"Interior designers", e:0.50, a:0.62, w:80400, pw:73},
-  {n:"Fashion designers", e:0.62, a:0.58, w:24800, pw:76},
-  {n:"Industrial designers", e:0.46, a:0.74, w:35800, pw:34},
-  {n:"Set and exhibit designers", e:0.50, a:0.66, w:13400, pw:54},
-  {n:"Choreographers", e:0.30, a:0.66, w:5600, pw:62},
-  {n:"Dancers", e:0.10, a:0.50, w:11400, pw:64},
-  {n:"Musicians", e:0.34, a:0.66, w:36900, pw:25},
-  {n:"Actors", e:0.40, a:0.62, w:51800, pw:46},
-  {n:"Producers and directors", e:0.50, a:0.78, w:159400, pw:38},
-  {n:"Coaches and scouts", e:0.16, a:0.56, w:332700, pw:30},
-  {n:"Athletes", e:0.10, a:0.62, w:14000, pw:32},
-  {n:"Umpires and referees", e:0.18, a:0.46, w:21800, pw:8},
-  {n:"Clergy", e:0.36, a:0.78, w:248800, pw:21},
-  {n:"Veterinary technologists", e:0.16, a:0.64, w:121700, pw:90},
-  {n:"Audiologists", e:0.30, a:0.78, w:14400, pw:78},
-  {n:"Optometrists", e:0.30, a:0.82, w:46500, pw:48},
-  {n:"Chiropractors", e:0.10, a:0.78, w:53700, pw:32},
-  {n:"Dietitians", e:0.34, a:0.74, w:73000, pw:88},
-  {n:"Athletic trainers", e:0.16, a:0.74, w:33800, pw:54},
-  {n:"Surveyors", e:0.30, a:0.62, w:50000, pw:9},
-  {n:"Drafters", e:0.40, a:0.50, w:170800, pw:18},
-  {n:"Cartographers", e:0.50, a:0.62, w:13700, pw:31},
-  {n:"Photogrammetrists", e:0.52, a:0.62, w:6900, pw:30},
-  {n:"Crane operators", e:0.06, a:0.50, w:43500, pw:3},
-  {n:"Boilermakers", e:0.06, a:0.62, w:11700, pw:3},
-  {n:"Insulation workers", e:0.04, a:0.30, w:55700, pw:2},
-  {n:"Pipelayers", e:0.04, a:0.34, w:35800, pw:2},
-  {n:"Stonemasons", e:0.04, a:0.36, w:8400, pw:2},
-  {n:"Chefs and head cooks", e:0.18, a:0.60, w:184600, pw:25},
-  {n:"Models", e:0.20, a:0.40, w:6900, pw:80}
-];
+const DATA = [{"n":"Chief Executives","soc":"11-1011","e":0.775,"a":0.792,"w":200800,"pw":33.0,"lmaioe":1.309,"vuln":-0.018,"cat":"MEDIUM"},{"n":"General and Operations Managers","soc":"11-1021","e":0.582,"a":0.627,"w":3477200,"pw":34.4,"lmaioe":0.678,"vuln":-0.045,"cat":"MEDIUM"},{"n":"Marketing Managers","soc":"11-2021","e":0.743,"a":0.725,"w":316800,"pw":59.4,"lmaioe":1.204,"vuln":0.018,"cat":"MEDIUM"},{"n":"Sales Managers","soc":"11-2022","e":0.77,"a":0.694,"w":619500,"pw":33.2,"lmaioe":1.294,"vuln":0.076,"cat":"MEDIUM"},{"n":"Computer and Information Systems Managers","soc":"11-3021","e":0.664,"a":0.731,"w":667100,"pw":25.1,"lmaioe":0.945,"vuln":-0.067,"cat":"MEDIUM"},{"n":"Financial Managers","soc":"11-3031","e":0.77,"a":0.685,"w":868600,"pw":53.7,"lmaioe":1.295,"vuln":0.085,"cat":"MEDIUM"},{"n":"Industrial Production Managers","soc":"11-3051","e":0.484,"a":0.666,"w":241900,"pw":22.8,"lmaioe":0.354,"vuln":-0.183,"cat":"LOW"},{"n":"Transportation, Storage, and Distribution Managers","soc":"11-3071","e":0.651,"a":0.557,"w":216700,"pw":16.3,"lmaioe":0.905,"vuln":0.094,"cat":"MEDIUM"},{"n":"Compensation and Benefits Managers","soc":"11-3111","e":0.823,"a":0.596,"w":20900,"pw":48.8,"lmaioe":1.467,"vuln":0.227,"cat":"HIGH"},{"n":"Human Resources Managers","soc":"11-3121","e":0.79,"a":0.69,"w":221900,"pw":79.6,"lmaioe":1.359,"vuln":0.1,"cat":"HIGH"},{"n":"Training and Development Managers","soc":"11-3131","e":0.783,"a":0.733,"w":46400,"pw":56.2,"lmaioe":1.337,"vuln":0.05,"cat":"MEDIUM"},{"n":"Farmers, Ranchers, and Other Agricultural Managers","soc":"11-9013","e":0.327,"a":0.586,"w":836100,"pw":25.7,"lmaioe":-0.158,"vuln":-0.258,"cat":"LOW"},{"n":"Construction Managers","soc":"11-9021","e":0.569,"a":0.714,"w":550300,"pw":8.5,"lmaioe":0.636,"vuln":-0.145,"cat":"LOW"},{"n":"Education Administrators, Preschool and Childcare Center/Program","soc":"11-9031","e":0.67,"a":0.591,"w":90200,"pw":66.4,"lmaioe":0.967,"vuln":0.079,"cat":"MEDIUM"},{"n":"Education Administrators, Elementary and Secondary School","soc":"11-9032","e":0.741,"a":0.8,"w":333300,"pw":48.8,"lmaioe":1.199,"vuln":-0.058,"cat":"MEDIUM"},{"n":"Education Administrators, Postsecondary","soc":"11-9033","e":0.847,"a":0.786,"w":226600,"pw":48.8,"lmaioe":1.545,"vuln":0.06,"cat":"MEDIUM"},{"n":"Architectural and Engineering Managers","soc":"11-9041","e":0.573,"a":0.766,"w":212500,"pw":10.8,"lmaioe":0.647,"vuln":-0.193,"cat":"LOW"},{"n":"Food Service Managers","soc":"11-9051","e":0.394,"a":0.384,"w":352800,"pw":48.8,"lmaioe":0.061,"vuln":0.01,"cat":"MEDIUM"},{"n":"Lodging Managers","soc":"11-9081","e":0.517,"a":0.512,"w":52000,"pw":52.5,"lmaioe":0.464,"vuln":0.005,"cat":"MEDIUM"},{"n":"Medical and Health Services Managers","soc":"11-9111","e":0.777,"a":0.655,"w":616200,"pw":75.3,"lmaioe":1.315,"vuln":0.122,"cat":"HIGH"},{"n":"Natural Sciences Managers","soc":"11-9121","e":0.754,"a":0.696,"w":104300,"pw":48.8,"lmaioe":1.241,"vuln":0.058,"cat":"MEDIUM"},{"n":"Property, Real Estate, and Community Association Managers","soc":"11-9141","e":0.746,"a":0.398,"w":466100,"pw":50.6,"lmaioe":1.215,"vuln":0.348,"cat":"HIGH"},{"n":"Social and Community Service Managers","soc":"11-9151","e":0.749,"a":0.656,"w":219800,"pw":73.9,"lmaioe":1.225,"vuln":0.093,"cat":"MEDIUM"},{"n":"Emergency Management Directors","soc":"11-9161","e":0.65,"a":0.756,"w":13200,"pw":48.8,"lmaioe":0.901,"vuln":-0.105,"cat":"LOW"},{"n":"Purchasing Agents, Except Wholesale, Retail, and Farm Products","soc":"13-1023","e":0.832,"a":0.516,"w":311500,"pw":50.0,"lmaioe":1.496,"vuln":0.315,"cat":"HIGH"},{"n":"Claims Adjusters, Examiners, and Investigators","soc":"13-1031","e":0.713,"a":0.538,"w":408400,"pw":58.2,"lmaioe":1.106,"vuln":0.175,"cat":"HIGH"},{"n":"Compliance Officers","soc":"13-1041","e":0.55,"a":0.612,"w":418000,"pw":52.7,"lmaioe":0.572,"vuln":-0.062,"cat":"MEDIUM"},{"n":"Cost Estimators","soc":"13-1051","e":0.721,"a":0.582,"w":221400,"pw":20.5,"lmaioe":1.134,"vuln":0.14,"cat":"HIGH"},{"n":"Human Resources Specialists","soc":"13-1071","e":0.85,"a":0.499,"w":944300,"pw":79.6,"lmaioe":1.557,"vuln":0.351,"cat":"HIGH"},{"n":"Labor Relations Specialists","soc":"13-1075","e":0.812,"a":0.65,"w":65400,"pw":65.9,"lmaioe":1.431,"vuln":0.162,"cat":"HIGH"},{"n":"Logisticians","soc":"13-1081","e":0.705,"a":0.663,"w":241000,"pw":36.7,"lmaioe":1.081,"vuln":0.043,"cat":"MEDIUM"},{"n":"Management Analysts","soc":"13-1111","e":0.847,"a":0.669,"w":1075100,"pw":40.7,"lmaioe":1.548,"vuln":0.178,"cat":"HIGH"},{"n":"Meeting, Convention, and Event Planners","soc":"13-1121","e":0.532,"a":0.654,"w":155800,"pw":73.4,"lmaioe":0.513,"vuln":-0.122,"cat":"LOW"},{"n":"Fundraisers","soc":"13-1131","e":0.804,"a":0.597,"w":134400,"pw":70.7,"lmaioe":1.405,"vuln":0.207,"cat":"HIGH"},{"n":"Compensation, Benefits, and Job Analysis Specialists","soc":"13-1141","e":0.791,"a":0.529,"w":107000,"pw":61.4,"lmaioe":1.362,"vuln":0.262,"cat":"HIGH"},{"n":"Training and Development Specialists","soc":"13-1151","e":0.779,"a":0.629,"w":452300,"pw":54.4,"lmaioe":1.323,"vuln":0.15,"cat":"HIGH"},{"n":"Market Research Analysts and Marketing Specialists","soc":"13-1161","e":0.789,"a":0.665,"w":941700,"pw":62.3,"lmaioe":1.356,"vuln":0.124,"cat":"HIGH"},{"n":"Business Operations Specialists, All Other","soc":"13-1199","e":0.658,"a":0.641,"w":853000,"pw":61.6,"lmaioe":0.925,"vuln":0.016,"cat":"MEDIUM"},{"n":"Accountants and Auditors","soc":"13-2011","e":0.746,"a":0.547,"w":1579800,"pw":59.1,"lmaioe":1.214,"vuln":0.198,"cat":"HIGH"},{"n":"Budget Analysts","soc":"13-2031","e":0.772,"a":0.546,"w":50400,"pw":60.3,"lmaioe":1.3,"vuln":0.226,"cat":"HIGH"},{"n":"Credit Analysts","soc":"13-2041","e":0.709,"a":0.473,"w":27300,"pw":59.1,"lmaioe":1.092,"vuln":0.235,"cat":"HIGH"},{"n":"Personal Financial Advisors","soc":"13-2052","e":0.801,"a":0.571,"w":326000,"pw":32.8,"lmaioe":1.396,"vuln":0.23,"cat":"HIGH"},{"n":"Insurance Underwriters","soc":"13-2053","e":0.76,"a":0.526,"w":127000,"pw":59.3,"lmaioe":1.262,"vuln":0.234,"cat":"HIGH"},{"n":"Financial Examiners","soc":"13-2061","e":0.79,"a":0.654,"w":65100,"pw":59.1,"lmaioe":1.358,"vuln":0.135,"cat":"HIGH"},{"n":"Credit Counselors","soc":"13-2071","e":0.789,"a":0.51,"w":31800,"pw":59.1,"lmaioe":1.355,"vuln":0.279,"cat":"HIGH"},{"n":"Loan Officers","soc":"13-2072","e":0.826,"a":0.487,"w":301400,"pw":59.1,"lmaioe":1.477,"vuln":0.339,"cat":"HIGH"},{"n":"Tax Examiners and Collectors, and Revenue Agents","soc":"13-2081","e":0.758,"a":0.503,"w":57600,"pw":55.3,"lmaioe":1.253,"vuln":0.255,"cat":"HIGH"},{"n":"Computer Systems Analysts","soc":"15-1211","e":0.694,"a":0.725,"w":521100,"pw":44.0,"lmaioe":1.046,"vuln":-0.03,"cat":"MEDIUM"},{"n":"Information Security Analysts","soc":"15-1212","e":0.694,"a":0.673,"w":182800,"pw":15.9,"lmaioe":1.045,"vuln":0.021,"cat":"MEDIUM"},{"n":"Computer and Information Research Scientists","soc":"15-1221","e":0.671,"a":0.837,"w":40300,"pw":26.5,"lmaioe":0.968,"vuln":-0.166,"cat":"LOW"},{"n":"Computer Network Architects","soc":"15-1241","e":0.527,"a":0.663,"w":179200,"pw":8.0,"lmaioe":0.495,"vuln":-0.136,"cat":"LOW"},{"n":"Database Administrators","soc":"15-1242","e":0.679,"a":0.661,"w":131000,"pw":36.3,"lmaioe":0.996,"vuln":0.019,"cat":"MEDIUM"},{"n":"Network and Computer Systems Administrators","soc":"15-1244","e":0.52,"a":0.653,"w":331500,"pw":18.2,"lmaioe":0.475,"vuln":-0.133,"cat":"LOW"},{"n":"Computer Programmers","soc":"15-1251","e":0.688,"a":0.602,"w":121200,"pw":18.5,"lmaioe":1.025,"vuln":0.086,"cat":"MEDIUM"},{"n":"Software Developers","soc":"15-1252","e":0.688,"a":0.659,"w":1656880,"pw":20.3,"lmaioe":1.024,"vuln":0.029,"cat":"MEDIUM","lbl":"Software Developers"},{"n":"Web Developers","soc":"15-1254","e":0.616,"a":0.625,"w":198400,"pw":36.8,"lmaioe":0.789,"vuln":-0.009,"cat":"MEDIUM"},{"n":"Actuaries","soc":"15-2011","e":0.741,"a":0.68,"w":33600,"pw":26.5,"lmaioe":1.2,"vuln":0.061,"cat":"MEDIUM"},{"n":"Operations Research Analysts","soc":"15-2031","e":0.752,"a":0.693,"w":112100,"pw":53.9,"lmaioe":1.234,"vuln":0.059,"cat":"MEDIUM"},{"n":"Statisticians","soc":"15-2041","e":0.755,"a":0.703,"w":43800,"pw":32.8,"lmaioe":1.243,"vuln":0.051,"cat":"MEDIUM"},{"n":"Architects, Except Landscape and Naval","soc":"17-1011","e":0.562,"a":0.857,"w":123600,"pw":29.8,"lmaioe":0.61,"vuln":-0.295,"cat":"LOW"},{"n":"Landscape Architects","soc":"17-1012","e":0.631,"a":0.797,"w":21800,"pw":18.9,"lmaioe":0.836,"vuln":-0.166,"cat":"LOW"},{"n":"Cartographers and Photogrammetrists","soc":"17-1021","e":0.52,"a":0.576,"w":13400,"pw":18.9,"lmaioe":0.472,"vuln":-0.057,"cat":"MEDIUM"},{"n":"Surveyors","soc":"17-1022","e":0.338,"a":0.62,"w":56100,"pw":18.9,"lmaioe":-0.121,"vuln":-0.282,"cat":"LOW"},{"n":"Aerospace Engineers","soc":"17-2011","e":0.716,"a":0.752,"w":71600,"pw":10.9,"lmaioe":1.117,"vuln":-0.036,"cat":"MEDIUM"},{"n":"Agricultural Engineers","soc":"17-2021","e":0.586,"a":0.742,"w":1700,"pw":18.9,"lmaioe":0.69,"vuln":-0.156,"cat":"LOW"},{"n":"Biomedical Engineers","soc":"17-2031","e":0.599,"a":0.785,"w":22200,"pw":18.9,"lmaioe":0.734,"vuln":-0.186,"cat":"LOW"},{"n":"Chemical Engineers","soc":"17-2041","e":0.652,"a":0.797,"w":21600,"pw":24.9,"lmaioe":0.906,"vuln":-0.145,"cat":"LOW"},{"n":"Civil Engineers","soc":"17-2051","e":0.658,"a":0.785,"w":368900,"pw":21.8,"lmaioe":0.927,"vuln":-0.127,"cat":"LOW"},{"n":"Computer Hardware Engineers","soc":"17-2061","e":0.673,"a":0.749,"w":76800,"pw":22.5,"lmaioe":0.977,"vuln":-0.076,"cat":"MEDIUM"},{"n":"Electrical Engineers","soc":"17-2071","e":0.65,"a":0.77,"w":188400,"pw":10.1,"lmaioe":0.901,"vuln":-0.119,"cat":"LOW"},{"n":"Environmental Engineers","soc":"17-2081","e":0.694,"a":0.724,"w":39400,"pw":18.9,"lmaioe":1.044,"vuln":-0.03,"cat":"MEDIUM"},{"n":"Health and Safety Engineers, Except Mining Safety Engineers and Inspectors","soc":"17-2111","e":0.609,"a":0.719,"w":23800,"pw":18.9,"lmaioe":0.764,"vuln":-0.111,"cat":"LOW"},{"n":"Industrial Engineers","soc":"17-2112","e":0.651,"a":0.737,"w":351100,"pw":18.9,"lmaioe":0.905,"vuln":-0.086,"cat":"MEDIUM"},{"n":"Marine Engineers and Naval Architects","soc":"17-2121","e":0.48,"a":0.738,"w":8500,"pw":18.9,"lmaioe":0.343,"vuln":-0.258,"cat":"LOW"},{"n":"Materials Engineers","soc":"17-2131","e":0.613,"a":0.755,"w":23000,"pw":19.8,"lmaioe":0.78,"vuln":-0.141,"cat":"LOW"},{"n":"Mechanical Engineers","soc":"17-2141","e":0.582,"a":0.769,"w":293100,"pw":11.2,"lmaioe":0.678,"vuln":-0.187,"cat":"LOW"},{"n":"Mining and Geological Engineers, Including Mining Safety Engineers","soc":"17-2151","e":0.69,"a":0.782,"w":7000,"pw":23.3,"lmaioe":1.031,"vuln":-0.092,"cat":"MEDIUM"},{"n":"Nuclear Engineers","soc":"17-2161","e":0.703,"a":0.813,"w":15400,"pw":18.9,"lmaioe":1.073,"vuln":-0.11,"cat":"LOW"},{"n":"Petroleum Engineers","soc":"17-2171","e":0.691,"a":0.789,"w":19600,"pw":18.9,"lmaioe":1.033,"vuln":-0.098,"cat":"MEDIUM"},{"n":"Engineers, All Other","soc":"17-2199","e":0.553,"a":0.782,"w":35800,"pw":17.9,"lmaioe":0.581,"vuln":-0.23,"cat":"LOW"},{"n":"Aerospace Engineering and Operations Technicians","soc":"17-3021","e":0.437,"a":0.577,"w":9300,"pw":18.9,"lmaioe":0.201,"vuln":-0.14,"cat":"LOW"},{"n":"Civil Engineering Technicians","soc":"17-3022","e":0.544,"a":0.56,"w":64900,"pw":18.9,"lmaioe":0.553,"vuln":-0.015,"cat":"MEDIUM"},{"n":"Electrical and Electronic Engineering Technicians","soc":"17-3023","e":0.399,"a":0.581,"w":93700,"pw":7.4,"lmaioe":0.078,"vuln":-0.182,"cat":"LOW"},{"n":"Electro-Mechanical Technicians","soc":"17-3024","e":0.202,"a":0.583,"w":15000,"pw":18.9,"lmaioe":-0.568,"vuln":-0.381,"cat":"LOW"},{"n":"Environmental Engineering Technicians","soc":"17-3025","e":0.338,"a":0.573,"w":12900,"pw":18.9,"lmaioe":-0.124,"vuln":-0.235,"cat":"LOW"},{"n":"Industrial Engineering Technicians","soc":"17-3026","e":0.481,"a":0.6,"w":74600,"pw":18.9,"lmaioe":0.347,"vuln":-0.118,"cat":"LOW"},{"n":"Mechanical Engineering Technicians","soc":"17-3027","e":0.292,"a":0.581,"w":38300,"pw":18.9,"lmaioe":-0.274,"vuln":-0.289,"cat":"LOW"},{"n":"Surveying and Mapping Technicians","soc":"17-3031","e":0.287,"a":0.379,"w":59400,"pw":12.2,"lmaioe":-0.29,"vuln":-0.092,"cat":"MEDIUM"},{"n":"Biochemists and Biophysicists","soc":"19-1021","e":0.617,"a":0.869,"w":35600,"pw":50.9,"lmaioe":0.794,"vuln":-0.252,"cat":"LOW"},{"n":"Microbiologists","soc":"19-1022","e":0.52,"a":0.737,"w":20700,"pw":50.9,"lmaioe":0.474,"vuln":-0.217,"cat":"LOW"},{"n":"Zoologists and Wildlife Biologists","soc":"19-1023","e":0.475,"a":0.658,"w":18200,"pw":50.9,"lmaioe":0.327,"vuln":-0.182,"cat":"LOW"},{"n":"Epidemiologists","soc":"19-1041","e":0.767,"a":0.85,"w":12300,"pw":50.9,"lmaioe":1.284,"vuln":-0.083,"cat":"MEDIUM"},{"n":"Medical Scientists, Except Epidemiologists","soc":"19-1042","e":0.731,"a":0.767,"w":165300,"pw":55.6,"lmaioe":1.167,"vuln":-0.036,"cat":"MEDIUM"},{"n":"Astronomers","soc":"19-2011","e":0.691,"a":0.791,"w":18900,"pw":50.9,"lmaioe":1.035,"vuln":-0.1,"cat":"MEDIUM"},{"n":"Physicists","soc":"19-2012","e":0.71,"a":0.977,"w":2100,"pw":50.9,"lmaioe":1.097,"vuln":-0.267,"cat":"LOW"},{"n":"Atmospheric and Space Scientists","soc":"19-2021","e":0.76,"a":0.653,"w":9400,"pw":50.9,"lmaioe":1.259,"vuln":0.106,"cat":"HIGH"},{"n":"Chemists","soc":"19-2031","e":0.475,"a":0.715,"w":81700,"pw":50.9,"lmaioe":0.327,"vuln":-0.24,"cat":"LOW"},{"n":"Materials Scientists","soc":"19-2032","e":0.615,"a":0.77,"w":33500,"pw":31.1,"lmaioe":0.786,"vuln":-0.155,"cat":"LOW"},{"n":"Environmental Scientists and Specialists, Including Health","soc":"19-2041","e":0.641,"a":0.654,"w":90300,"pw":46.1,"lmaioe":0.87,"vuln":-0.013,"cat":"MEDIUM"},{"n":"Geoscientists, Except Hydrologists and Geographers","soc":"19-2042","e":0.548,"a":0.727,"w":25100,"pw":50.9,"lmaioe":0.567,"vuln":-0.179,"cat":"LOW"},{"n":"Hydrologists","soc":"19-2043","e":0.545,"a":0.702,"w":6300,"pw":50.9,"lmaioe":0.555,"vuln":-0.158,"cat":"LOW"},{"n":"Economists","soc":"19-3011","e":0.781,"a":0.703,"w":17600,"pw":50.9,"lmaioe":1.33,"vuln":0.078,"cat":"MEDIUM"},{"n":"Survey Researchers","soc":"19-3022","e":0.765,"a":0.582,"w":8800,"pw":50.9,"lmaioe":1.279,"vuln":0.183,"cat":"HIGH"},{"n":"Industrial-Organizational Psychologists","soc":"19-3032","e":0.811,"a":0.836,"w":24800,"pw":50.9,"lmaioe":1.427,"vuln":-0.025,"cat":"MEDIUM"},{"n":"Psychologists, All Other","soc":"19-3039","e":0.781,"a":0.748,"w":60500,"pw":71.3,"lmaioe":1.33,"vuln":0.034,"cat":"MEDIUM"},{"n":"Sociologists","soc":"19-3041","e":0.85,"a":0.653,"w":3400,"pw":50.9,"lmaioe":1.747,"vuln":0.197,"cat":"HIGH"},{"n":"Urban and Regional Planners","soc":"19-3051","e":0.703,"a":0.737,"w":44700,"pw":50.9,"lmaioe":1.075,"vuln":-0.033,"cat":"MEDIUM"},{"n":"Anthropologists and Archeologists","soc":"19-3091","e":0.601,"a":0.704,"w":8800,"pw":50.9,"lmaioe":0.739,"vuln":-0.103,"cat":"LOW"},{"n":"Geographers","soc":"19-3092","e":0.791,"a":0.679,"w":1500,"pw":50.9,"lmaioe":1.363,"vuln":0.113,"cat":"HIGH"},{"n":"Historians","soc":"19-3093","e":0.83,"a":0.582,"w":3400,"pw":50.9,"lmaioe":1.491,"vuln":0.248,"cat":"HIGH"},{"n":"Political Scientists","soc":"19-3094","e":0.85,"a":0.657,"w":6500,"pw":50.9,"lmaioe":1.687,"vuln":0.193,"cat":"HIGH"},{"n":"Biological Technicians","soc":"19-4021","e":0.416,"a":0.578,"w":82700,"pw":50.9,"lmaioe":0.133,"vuln":-0.162,"cat":"LOW"},{"n":"Chemical Technicians","soc":"19-4031","e":0.347,"a":0.564,"w":57000,"pw":36.0,"lmaioe":-0.094,"vuln":-0.217,"cat":"LOW"},{"n":"Nuclear Technicians","soc":"19-4051","e":0.348,"a":0.581,"w":6000,"pw":50.9,"lmaioe":-0.091,"vuln":-0.233,"cat":"LOW"},{"n":"Forensic Science Technicians","soc":"19-4092","e":0.379,"a":0.651,"w":20700,"pw":50.9,"lmaioe":0.01,"vuln":-0.273,"cat":"LOW"},{"n":"Life, Physical, and Social Science Technicians, All Other","soc":"19-4099","e":0.429,"a":0.594,"w":14300,"pw":59.7,"lmaioe":0.176,"vuln":-0.165,"cat":"LOW"},{"n":"Substance Abuse and Behavioral Disorder Counselors","soc":"21-1011","e":0.743,"a":0.67,"w":92400,"pw":79.8,"lmaioe":1.204,"vuln":0.072,"cat":"MEDIUM"},{"n":"Educational, Guidance, School, and Vocational Counselors","soc":"21-1012","e":0.74,"a":0.631,"w":376300,"pw":77.0,"lmaioe":1.196,"vuln":0.109,"cat":"HIGH"},{"n":"Marriage and Family Therapists","soc":"21-1013","e":0.825,"a":0.695,"w":77800,"pw":75.2,"lmaioe":1.473,"vuln":0.13,"cat":"HIGH"},{"n":"Mental Health Counselors","soc":"21-1014","e":0.844,"a":0.747,"w":368200,"pw":72.6,"lmaioe":1.537,"vuln":0.098,"cat":"MEDIUM"},{"n":"Rehabilitation Counselors","soc":"21-1015","e":0.63,"a":0.564,"w":91900,"pw":75.2,"lmaioe":0.835,"vuln":0.066,"cat":"MEDIUM"},{"n":"Child, Family, and School Social Workers","soc":"21-1021","e":0.667,"a":0.615,"w":384400,"pw":81.3,"lmaioe":0.957,"vuln":0.053,"cat":"MEDIUM"},{"n":"Mental Health and Substance Abuse Social Workers","soc":"21-1023","e":0.758,"a":0.77,"w":117800,"pw":75.2,"lmaioe":1.253,"vuln":-0.012,"cat":"MEDIUM"},{"n":"Health Educators","soc":"21-1091","e":0.671,"a":0.573,"w":71800,"pw":75.2,"lmaioe":0.968,"vuln":0.097,"cat":"MEDIUM"},{"n":"Probation Officers and Correctional Treatment Specialists","soc":"21-1092","e":0.649,"a":0.529,"w":92300,"pw":43.6,"lmaioe":0.897,"vuln":0.12,"cat":"HIGH"},{"n":"Social and Human Service Assistants","soc":"21-1093","e":0.545,"a":0.381,"w":449600,"pw":75.2,"lmaioe":0.557,"vuln":0.165,"cat":"HIGH"},{"n":"Community Health Workers","soc":"21-1094","e":0.417,"a":0.41,"w":65100,"pw":75.2,"lmaioe":0.135,"vuln":0.006,"cat":"MEDIUM"},{"n":"Clergy","soc":"21-2011","e":0.824,"a":0.726,"w":248800,"pw":23.7,"lmaioe":1.47,"vuln":0.097,"cat":"MEDIUM"},{"n":"Lawyers","soc":"23-1011","e":0.819,"a":0.839,"w":864800,"pw":42.9,"lmaioe":1.454,"vuln":-0.02,"cat":"MEDIUM"},{"n":"Arbitrators, Mediators, and Conciliators","soc":"23-1022","e":0.85,"a":0.552,"w":9100,"pw":62.7,"lmaioe":1.647,"vuln":0.298,"cat":"HIGH"},{"n":"Judges, Magistrate Judges, and Magistrates","soc":"23-1023","e":0.85,"a":0.594,"w":43000,"pw":62.7,"lmaioe":1.646,"vuln":0.256,"cat":"HIGH"},{"n":"Paralegals and Legal Assistants","soc":"23-2011","e":0.782,"a":0.404,"w":376200,"pw":82.4,"lmaioe":1.333,"vuln":0.378,"cat":"HIGH"},{"n":"Business Teachers, Postsecondary","soc":"25-1011","e":0.85,"a":0.517,"w":1400000,"pw":52.3,"lmaioe":1.618,"vuln":0.333,"cat":"HIGH"},{"n":"Preschool Teachers, Except Special Education","soc":"25-2011","e":0.474,"a":0.503,"w":555100,"pw":84.7,"lmaioe":0.322,"vuln":-0.03,"cat":"MEDIUM"},{"n":"Elementary School Teachers, Except Special Education","soc":"25-2021","e":0.686,"a":0.781,"w":1466000,"pw":84.7,"lmaioe":1.017,"vuln":-0.095,"cat":"MEDIUM"},{"n":"Middle School Teachers, Except Special and Career/Technical Education","soc":"25-2022","e":0.767,"a":0.554,"w":633700,"pw":70.6,"lmaioe":1.284,"vuln":0.213,"cat":"HIGH"},{"n":"Secondary School Teachers, Except Special and Career/Technical Education","soc":"25-2031","e":0.756,"a":0.647,"w":1094500,"pw":70.6,"lmaioe":1.249,"vuln":0.109,"cat":"HIGH"},{"n":"Career/Technical Education Teachers, Secondary School","soc":"25-2032","e":0.504,"a":0.715,"w":235100,"pw":56.5,"lmaioe":0.422,"vuln":-0.211,"cat":"LOW"},{"n":"Adult Basic and Secondary Education and Literacy Teachers and Instructors","soc":"25-3011","e":0.815,"a":0.503,"w":40900,"pw":70.6,"lmaioe":1.44,"vuln":0.311,"cat":"HIGH"},{"n":"Instructional Coordinators","soc":"25-9031","e":0.779,"a":0.754,"w":232600,"pw":70.6,"lmaioe":1.324,"vuln":0.025,"cat":"MEDIUM"},{"n":"Art Directors","soc":"27-1011","e":0.597,"a":0.816,"w":135000,"pw":50.7,"lmaioe":0.727,"vuln":-0.218,"cat":"LOW"},{"n":"Multimedia Artists and Animators","soc":"27-1014","e":0.507,"a":0.682,"w":57100,"pw":50.7,"lmaioe":0.432,"vuln":-0.175,"cat":"LOW"},{"n":"Commercial and Industrial Designers","soc":"27-1021","e":0.546,"a":0.71,"w":30600,"pw":50.7,"lmaioe":0.56,"vuln":-0.164,"cat":"LOW"},{"n":"Fashion Designers","soc":"27-1022","e":0.53,"a":0.764,"w":25700,"pw":50.7,"lmaioe":0.508,"vuln":-0.233,"cat":"LOW"},{"n":"Floral Designers","soc":"27-1023","e":0.309,"a":0.45,"w":43800,"pw":50.7,"lmaioe":-0.219,"vuln":-0.141,"cat":"LOW"},{"n":"Graphic Designers","soc":"27-1024","e":0.536,"a":0.617,"w":265900,"pw":54.2,"lmaioe":0.527,"vuln":-0.08,"cat":"MEDIUM"},{"n":"Interior Designers","soc":"27-1025","e":0.626,"a":0.745,"w":87100,"pw":82.8,"lmaioe":0.822,"vuln":-0.119,"cat":"LOW"},{"n":"Set and Exhibit Designers","soc":"27-1027","e":0.327,"a":0.762,"w":31300,"pw":50.7,"lmaioe":-0.16,"vuln":-0.435,"cat":"LOW"},{"n":"Actors","soc":"27-2011","e":0.552,"a":0.402,"w":57000,"pw":50.7,"lmaioe":0.578,"vuln":0.149,"cat":"HIGH"},{"n":"Producers and Directors","soc":"27-2012","e":0.638,"a":0.687,"w":167000,"pw":43.6,"lmaioe":0.86,"vuln":-0.049,"cat":"MEDIUM"},{"n":"Athletes and Sports Competitors","soc":"27-2021","e":0.0,"a":0.372,"w":19100,"pw":50.7,"lmaioe":-1.29,"vuln":-0.372,"cat":"LOW"},{"n":"Coaches and Scouts","soc":"27-2022","e":0.473,"a":0.701,"w":306500,"pw":47.4,"lmaioe":0.319,"vuln":-0.228,"cat":"LOW"},{"n":"Umpires, Referees, and Other Sports Officials","soc":"27-2023","e":0.331,"a":0.231,"w":19300,"pw":50.7,"lmaioe":-0.145,"vuln":0.1,"cat":"HIGH"},{"n":"Dancers","soc":"27-2031","e":0.0,"a":0.443,"w":11400,"pw":50.7,"lmaioe":-1.793,"vuln":-0.443,"cat":"LOW"},{"n":"Choreographers","soc":"27-2032","e":0.105,"a":0.77,"w":5600,"pw":50.7,"lmaioe":-0.886,"vuln":-0.664,"cat":"LOW"},{"n":"Music Directors and Composers","soc":"27-2041","e":0.69,"a":0.601,"w":47300,"pw":28.5,"lmaioe":1.032,"vuln":0.09,"cat":"MEDIUM"},{"n":"Musicians and Singers","soc":"27-2042","e":0.464,"a":0.347,"w":169800,"pw":34.1,"lmaioe":0.29,"vuln":0.117,"cat":"HIGH"},{"n":"Reporters and Correspondents","soc":"27-3023","e":0.824,"a":0.518,"w":49300,"pw":50.7,"lmaioe":1.471,"vuln":0.306,"cat":"HIGH"},{"n":"Public Relations Specialists","soc":"27-3031","e":0.838,"a":0.647,"w":315900,"pw":65.9,"lmaioe":1.518,"vuln":0.192,"cat":"HIGH","lbl":"Public Relations Specialists"},{"n":"Editors","soc":"27-3041","e":0.739,"a":0.654,"w":115800,"pw":63.2,"lmaioe":1.191,"vuln":0.085,"cat":"MEDIUM"},{"n":"Technical Writers","soc":"27-3042","e":0.777,"a":0.564,"w":56400,"pw":46.9,"lmaioe":1.317,"vuln":0.213,"cat":"HIGH"},{"n":"Writers and Authors","soc":"27-3043","e":0.732,"a":0.604,"w":135400,"pw":66.8,"lmaioe":1.17,"vuln":0.128,"cat":"HIGH","lbl":"Writers and Authors"},{"n":"Interpreters and Translators","soc":"27-3091","e":0.788,"a":0.515,"w":75300,"pw":66.9,"lmaioe":1.352,"vuln":0.272,"cat":"HIGH","lbl":"Interpreters and Translators"},{"n":"Photographers","soc":"27-4021","e":0.259,"a":0.482,"w":151200,"pw":50.7,"lmaioe":-0.382,"vuln":-0.223,"cat":"LOW"},{"n":"Film and Video Editors","soc":"27-4032","e":0.576,"a":0.681,"w":43000,"pw":30.6,"lmaioe":0.657,"vuln":-0.105,"cat":"LOW"},{"n":"Chiropractors","soc":"29-1011","e":0.391,"a":0.689,"w":57200,"pw":31.1,"lmaioe":0.052,"vuln":-0.298,"cat":"LOW"},{"n":"Dentists, General","soc":"29-1021","e":0.269,"a":0.791,"w":139200,"pw":38.6,"lmaioe":-0.348,"vuln":-0.521,"cat":"LOW"},{"n":"Dietitians and Nutritionists","soc":"29-1031","e":0.791,"a":0.671,"w":90900,"pw":91.7,"lmaioe":1.364,"vuln":0.12,"cat":"HIGH"},{"n":"Optometrists","soc":"29-1041","e":0.437,"a":0.784,"w":47800,"pw":76.8,"lmaioe":0.2,"vuln":-0.347,"cat":"LOW"},{"n":"Pharmacists","soc":"29-1051","e":0.549,"a":0.726,"w":335100,"pw":62.7,"lmaioe":0.571,"vuln":-0.177,"cat":"LOW"},{"n":"Physician Assistants","soc":"29-1071","e":0.388,"a":0.694,"w":162700,"pw":77.5,"lmaioe":0.04,"vuln":-0.306,"cat":"LOW"},{"n":"Podiatrists","soc":"29-1081","e":0.544,"a":0.812,"w":9700,"pw":76.8,"lmaioe":0.554,"vuln":-0.268,"cat":"LOW"},{"n":"Occupational Therapists","soc":"29-1122","e":0.456,"a":0.724,"w":160000,"pw":92.4,"lmaioe":0.266,"vuln":-0.267,"cat":"LOW"},{"n":"Physical Therapists","soc":"29-1123","e":0.358,"a":0.709,"w":267200,"pw":66.9,"lmaioe":-0.059,"vuln":-0.352,"cat":"LOW"},{"n":"Radiation Therapists","soc":"29-1124","e":0.279,"a":0.517,"w":19200,"pw":76.8,"lmaioe":-0.316,"vuln":-0.238,"cat":"LOW"},{"n":"Recreational Therapists","soc":"29-1125","e":0.498,"a":0.583,"w":16100,"pw":76.8,"lmaioe":0.401,"vuln":-0.085,"cat":"MEDIUM"},{"n":"Respiratory Therapists","soc":"29-1126","e":0.315,"a":0.532,"w":139600,"pw":65.2,"lmaioe":-0.199,"vuln":-0.217,"cat":"LOW"},{"n":"Speech-Language Pathologists","soc":"29-1127","e":0.785,"a":0.741,"w":187400,"pw":97.3,"lmaioe":1.343,"vuln":0.045,"cat":"MEDIUM"},{"n":"Exercise Physiologists","soc":"29-1128","e":0.469,"a":0.632,"w":23900,"pw":76.8,"lmaioe":0.307,"vuln":-0.163,"cat":"LOW"},{"n":"Veterinarians","soc":"29-1131","e":0.35,"a":0.739,"w":86400,"pw":70.9,"lmaioe":-0.084,"vuln":-0.389,"cat":"LOW"},{"n":"Registered Nurses","soc":"29-1141","e":0.459,"a":0.671,"w":3391000,"pw":87.3,"lmaioe":0.272,"vuln":-0.213,"cat":"LOW","lbl":"Registered Nurses"},{"n":"Audiologists","soc":"29-1181","e":0.588,"a":0.701,"w":15800,"pw":76.8,"lmaioe":0.696,"vuln":-0.113,"cat":"LOW"},{"n":"General Internal Medicine Physicians","soc":"29-1216","e":0.716,"a":0.792,"w":65400,"pw":76.8,"lmaioe":1.115,"vuln":-0.077,"cat":"MEDIUM"},{"n":"Internists, General","soc":"29-1228","e":0.681,"a":0.712,"w":250200,"pw":76.8,"lmaioe":1.001,"vuln":-0.031,"cat":"MEDIUM"},{"n":"Orthopedic Surgeons, Except Pediatric","soc":"29-1242","e":0.331,"a":0.712,"w":28200,"pw":76.8,"lmaioe":-0.145,"vuln":-0.381,"cat":"LOW"},{"n":"Cardiovascular Technologists and Technicians","soc":"29-2031","e":0.335,"a":0.504,"w":64700,"pw":70.7,"lmaioe":-0.131,"vuln":-0.168,"cat":"LOW"},{"n":"Diagnostic Medical Sonographers","soc":"29-2032","e":0.292,"a":0.559,"w":90000,"pw":80.6,"lmaioe":-0.274,"vuln":-0.267,"cat":"LOW"},{"n":"Nuclear Medicine Technologists","soc":"29-2033","e":0.369,"a":0.546,"w":20000,"pw":76.8,"lmaioe":-0.023,"vuln":-0.178,"cat":"LOW"},{"n":"Radiologic Technologists","soc":"29-2034","e":0.252,"a":0.494,"w":252200,"pw":65.7,"lmaioe":-0.405,"vuln":-0.242,"cat":"LOW"},{"n":"Pharmacy Technicians","soc":"29-2052","e":0.368,"a":0.304,"w":490400,"pw":76.8,"lmaioe":-0.023,"vuln":0.064,"cat":"MEDIUM"},{"n":"Surgical Technologists","soc":"29-2055","e":0.21,"a":0.473,"w":156100,"pw":77.3,"lmaioe":-0.542,"vuln":-0.263,"cat":"LOW"},{"n":"Veterinary Technologists and Technicians","soc":"29-2056","e":0.289,"a":0.494,"w":134200,"pw":87.2,"lmaioe":-0.282,"vuln":-0.205,"cat":"LOW"},{"n":"Licensed Practical and Licensed Vocational Nurses","soc":"29-2061","e":0.285,"a":0.48,"w":651400,"pw":89.9,"lmaioe":-0.298,"vuln":-0.195,"cat":"LOW"},{"n":"Opticians, Dispensing","soc":"29-2081","e":0.384,"a":0.377,"w":79900,"pw":73.6,"lmaioe":0.029,"vuln":0.007,"cat":"MEDIUM"},{"n":"Orthotists and Prosthetists","soc":"29-2091","e":0.414,"a":0.745,"w":10100,"pw":76.8,"lmaioe":0.126,"vuln":-0.331,"cat":"LOW"},{"n":"Athletic Trainers","soc":"29-9091","e":0.346,"a":0.631,"w":33900,"pw":76.8,"lmaioe":-0.095,"vuln":-0.285,"cat":"LOW"},{"n":"Genetic Counselors","soc":"29-9092","e":0.826,"a":0.676,"w":4000,"pw":76.8,"lmaioe":1.478,"vuln":0.15,"cat":"HIGH"},{"n":"Massage Therapists","soc":"31-9011","e":0.167,"a":0.35,"w":168000,"pw":76.5,"lmaioe":-0.682,"vuln":-0.182,"cat":"LOW"},{"n":"Dental Assistants","soc":"31-9091","e":0.27,"a":0.346,"w":381900,"pw":91.8,"lmaioe":-0.346,"vuln":-0.076,"cat":"MEDIUM"},{"n":"Medical Assistants","soc":"31-9092","e":0.447,"a":0.408,"w":811000,"pw":90.8,"lmaioe":0.236,"vuln":0.04,"cat":"MEDIUM"},{"n":"Medical Transcriptionists","soc":"31-9094","e":0.74,"a":0.21,"w":43900,"pw":88.2,"lmaioe":1.196,"vuln":0.53,"cat":"HIGH"},{"n":"Veterinary Assistants and Laboratory Animal Caretakers","soc":"31-9096","e":0.196,"a":0.228,"w":117800,"pw":81.9,"lmaioe":-0.59,"vuln":-0.032,"cat":"MEDIUM"},{"n":"Phlebotomists","soc":"31-9097","e":0.298,"a":0.36,"w":139700,"pw":88.2,"lmaioe":-0.253,"vuln":-0.061,"cat":"MEDIUM"},{"n":"First-Line Supervisors of Correctional Officers","soc":"33-1011","e":0.265,"a":0.528,"w":64700,"pw":21.5,"lmaioe":-0.361,"vuln":-0.263,"cat":"LOW"},{"n":"First-Line Supervisors of Police and Detectives","soc":"33-1012","e":0.316,"a":0.638,"w":105800,"pw":16.6,"lmaioe":-0.196,"vuln":-0.322,"cat":"LOW"},{"n":"Firefighters","soc":"33-2011","e":0.0,"a":0.52,"w":344900,"pw":5.1,"lmaioe":-1.287,"vuln":-0.52,"cat":"LOW","lbl":"Firefighters"},{"n":"Correctional Officers and Jailers","soc":"33-3012","e":0.171,"a":0.518,"w":423300,"pw":25.8,"lmaioe":-0.669,"vuln":-0.347,"cat":"LOW"},{"n":"Detectives and Criminal Investigators","soc":"33-3021","e":0.422,"a":0.696,"w":108500,"pw":31.6,"lmaioe":0.151,"vuln":-0.274,"cat":"LOW"},{"n":"Police and Sheriff's Patrol Officers","soc":"33-3051","e":0.18,"a":0.621,"w":680300,"pw":25.8,"lmaioe":-0.64,"vuln":-0.441,"cat":"LOW"},{"n":"Private Detectives and Investigators","soc":"33-9021","e":0.563,"a":0.445,"w":43600,"pw":44.5,"lmaioe":0.615,"vuln":0.118,"cat":"HIGH"},{"n":"Security Guards","soc":"33-9032","e":0.246,"a":0.287,"w":1107500,"pw":25.8,"lmaioe":-0.423,"vuln":-0.04,"cat":"MEDIUM"},{"n":"Crossing Guards","soc":"33-9091","e":0.254,"a":0.145,"w":79600,"pw":37.4,"lmaioe":-0.397,"vuln":0.109,"cat":"HIGH"},{"n":"Chefs and Head Cooks","soc":"35-1011","e":0.323,"a":0.503,"w":197300,"pw":26.4,"lmaioe":-0.172,"vuln":-0.18,"cat":"LOW"},{"n":"Cooks, Fast Food","soc":"35-2011","e":0.256,"a":0.055,"w":184600,"pw":57.0,"lmaioe":-0.391,"vuln":0.201,"cat":"HIGH"},{"n":"Cooks, Restaurant","soc":"35-2014","e":0.144,"a":0.42,"w":1394100,"pw":43.7,"lmaioe":-0.759,"vuln":-0.275,"cat":"LOW"},{"n":"Food Preparation Workers","soc":"35-2021","e":0.091,"a":0.047,"w":902700,"pw":56.8,"lmaioe":-0.934,"vuln":0.043,"cat":"MEDIUM"},{"n":"Bartenders","soc":"35-3011","e":0.25,"a":0.231,"w":756700,"pw":57.2,"lmaioe":-0.411,"vuln":0.019,"cat":"MEDIUM"},{"n":"Fast Food and Counter Workers","soc":"35-3023","e":0.279,"a":0.165,"w":3676600,"pw":65.7,"lmaioe":-0.315,"vuln":0.115,"cat":"HIGH","lbl":"Fast Food and Counter Workers"},{"n":"Waiters and Waitresses","soc":"35-3031","e":0.232,"a":0.123,"w":2329700,"pw":69.8,"lmaioe":-0.469,"vuln":0.109,"cat":"HIGH"},{"n":"Food Servers, Nonrestaurant","soc":"35-3041","e":0.24,"a":0.121,"w":286600,"pw":75.7,"lmaioe":-0.445,"vuln":0.118,"cat":"HIGH"},{"n":"Dining Room and Cafeteria Attendants and Bartender Helpers","soc":"35-9011","e":0.0,"a":0.19,"w":401200,"pw":44.9,"lmaioe":-1.433,"vuln":-0.19,"cat":"LOW"},{"n":"Janitors and Cleaners, Except Maids and Housekeeping Cleaners","soc":"37-2011","e":0.042,"a":0.135,"w":2447700,"pw":86.4,"lmaioe":-1.093,"vuln":-0.093,"cat":"MEDIUM"},{"n":"Maids and Housekeeping Cleaners","soc":"37-2012","e":0.061,"a":0.13,"w":881300,"pw":86.4,"lmaioe":-1.031,"vuln":-0.069,"cat":"MEDIUM"},{"n":"Pest Control Workers","soc":"37-2021","e":0.155,"a":0.406,"w":102400,"pw":8.8,"lmaioe":-0.724,"vuln":-0.252,"cat":"LOW"},{"n":"Landscaping and Groundskeeping Workers","soc":"37-3011","e":0.0,"a":0.318,"w":1300000,"pw":7.9,"lmaioe":-1.656,"vuln":-0.318,"cat":"LOW"},{"n":"Animal Trainers","soc":"39-2011","e":0.153,"a":0.515,"w":13100,"pw":75.8,"lmaioe":-0.729,"vuln":-0.362,"cat":"LOW"},{"n":"Gaming Dealers","soc":"39-3011","e":0.385,"a":0.242,"w":89400,"pw":80.5,"lmaioe":0.03,"vuln":0.143,"cat":"HIGH"},{"n":"Ushers, Lobby Attendants, and Ticket Takers","soc":"39-3031","e":0.342,"a":0.176,"w":130000,"pw":80.5,"lmaioe":-0.111,"vuln":0.166,"cat":"HIGH"},{"n":"Hairdressers, Hairstylists, and Cosmetologists","soc":"39-5012","e":0.188,"a":0.604,"w":583500,"pw":92.0,"lmaioe":-0.616,"vuln":-0.417,"cat":"LOW"},{"n":"Manicurists and Pedicurists","soc":"39-5092","e":0.351,"a":0.236,"w":210100,"pw":85.2,"lmaioe":-0.079,"vuln":0.115,"cat":"HIGH"},{"n":"Skincare Specialists","soc":"39-5094","e":0.364,"a":0.344,"w":97400,"pw":100.0,"lmaioe":-0.037,"vuln":0.02,"cat":"MEDIUM"},{"n":"Concierges","soc":"39-6012","e":0.702,"a":0.319,"w":45600,"pw":80.5,"lmaioe":1.071,"vuln":0.383,"cat":"HIGH"},{"n":"Tour Guides and Escorts","soc":"39-7011","e":0.6,"a":0.177,"w":38200,"pw":43.6,"lmaioe":0.736,"vuln":0.423,"cat":"HIGH"},{"n":"Childcare Workers","soc":"39-9011","e":0.324,"a":0.364,"w":991600,"pw":93.2,"lmaioe":-0.167,"vuln":-0.039,"cat":"MEDIUM"},{"n":"Fitness Trainers and Aerobics Instructors","soc":"39-9031","e":0.0,"a":0.322,"w":370100,"pw":66.1,"lmaioe":-1.257,"vuln":-0.322,"cat":"LOW"},{"n":"Recreation Workers","soc":"39-9032","e":0.405,"a":0.367,"w":327700,"pw":67.3,"lmaioe":0.097,"vuln":0.038,"cat":"MEDIUM"},{"n":"First-Line Supervisors of Retail Sales Workers","soc":"41-1011","e":0.437,"a":0.429,"w":1481400,"pw":43.9,"lmaioe":0.201,"vuln":0.008,"cat":"MEDIUM"},{"n":"Cashiers","soc":"41-2011","e":0.343,"a":0.08,"w":3157200,"pw":68.5,"lmaioe":-0.107,"vuln":0.263,"cat":"HIGH"},{"n":"Counter and Rental Clerks","soc":"41-2021","e":0.419,"a":0.252,"w":469100,"pw":42.7,"lmaioe":0.143,"vuln":0.167,"cat":"HIGH"},{"n":"Retail Salespersons","soc":"41-2031","e":0.484,"a":0.386,"w":3625900,"pw":47.0,"lmaioe":0.357,"vuln":0.098,"cat":"MEDIUM","lbl":"Retail Salespersons"},{"n":"Advertising Sales Agents","soc":"41-3011","e":0.718,"a":0.411,"w":103700,"pw":44.0,"lmaioe":1.122,"vuln":0.306,"cat":"HIGH"},{"n":"Insurance Sales Agents","soc":"41-3021","e":0.811,"a":0.331,"w":568800,"pw":52.4,"lmaioe":1.427,"vuln":0.48,"cat":"HIGH"},{"n":"Securities, Commodities, and Financial Services Sales Agents","soc":"41-3031","e":0.76,"a":0.537,"w":514500,"pw":21.8,"lmaioe":1.26,"vuln":0.222,"cat":"HIGH"},{"n":"Travel Agents","soc":"41-3041","e":0.765,"a":0.347,"w":65700,"pw":86.2,"lmaioe":1.278,"vuln":0.419,"cat":"HIGH"},{"n":"Models","soc":"41-9012","e":0.222,"a":0.136,"w":6700,"pw":44.0,"lmaioe":-0.503,"vuln":0.086,"cat":"MEDIUM"},{"n":"Sales Engineers","soc":"41-9031","e":0.688,"a":0.723,"w":56800,"pw":15.2,"lmaioe":1.026,"vuln":-0.035,"cat":"MEDIUM"},{"n":"Bill and Account Collectors","soc":"43-3011","e":0.763,"a":0.25,"w":166900,"pw":67.0,"lmaioe":1.27,"vuln":0.512,"cat":"HIGH"},{"n":"Bookkeeping, Accounting, and Auditing Clerks","soc":"43-3031","e":0.625,"a":0.278,"w":1613400,"pw":82.7,"lmaioe":0.818,"vuln":0.347,"cat":"HIGH"},{"n":"Payroll and Timekeeping Clerks","soc":"43-3051","e":0.728,"a":0.241,"w":148000,"pw":82.2,"lmaioe":1.155,"vuln":0.487,"cat":"HIGH"},{"n":"Tellers","soc":"43-3071","e":0.507,"a":0.284,"w":347400,"pw":76.6,"lmaioe":0.431,"vuln":0.223,"cat":"HIGH"},{"n":"Customer Service Representatives","soc":"43-4051","e":0.704,"a":0.317,"w":2814000,"pw":64.8,"lmaioe":1.076,"vuln":0.387,"cat":"HIGH","lbl":"Customer Service Representatives"},{"n":"Loan Interviewers and Clerks","soc":"43-4131","e":0.764,"a":0.515,"w":88600,"pw":76.3,"lmaioe":1.274,"vuln":0.249,"cat":"HIGH"},{"n":"Receptionists and Information Clerks","soc":"43-4171","e":0.69,"a":0.187,"w":1007200,"pw":89.6,"lmaioe":1.033,"vuln":0.503,"cat":"HIGH"},{"n":"Police, Fire, and Ambulance Dispatchers","soc":"43-5031","e":0.612,"a":0.39,"w":105200,"pw":61.7,"lmaioe":0.774,"vuln":0.222,"cat":"HIGH"},{"n":"Executive Secretaries and Executive Administrative Assistants","soc":"43-6011","e":0.713,"a":0.428,"w":495400,"pw":93.5,"lmaioe":1.106,"vuln":0.284,"cat":"HIGH"},{"n":"Legal Secretaries","soc":"43-6012","e":0.726,"a":0.33,"w":175600,"pw":76.6,"lmaioe":1.149,"vuln":0.396,"cat":"HIGH"},{"n":"Medical Secretaries","soc":"43-6013","e":0.771,"a":0.219,"w":524100,"pw":76.6,"lmaioe":1.298,"vuln":0.552,"cat":"HIGH"},{"n":"Secretaries and Administrative Assistants, Except Legal, Medical, and Executive","soc":"43-6014","e":0.758,"a":0.263,"w":1857300,"pw":91.9,"lmaioe":1.254,"vuln":0.495,"cat":"HIGH","lbl":"Secretaries"},{"n":"Data Entry Keyers","soc":"43-9021","e":0.428,"a":0.242,"w":159200,"pw":70.4,"lmaioe":0.172,"vuln":0.186,"cat":"HIGH"}];
 
-DATA.forEach(d => {
-  d.vuln = d.e - d.a;
-  d.cat = d.vuln > 0.15 ? "HIGH" : (d.vuln < -0.15 ? "LOW" : "MEDIUM");
-});
-
+// Layout
 const W = 1080, H = 760;
 const margin = {top: 8, right: 56, bottom: 56, left: 56};
 const plotW = W - margin.left - margin.right;
@@ -365,133 +125,121 @@ const x = d3.scaleLinear().domain([0, 0.85]).range([margin.left, margin.left + p
 const y = d3.scaleLinear().domain([0, 1]).range([margin.top + plotH, margin.top]);
 const rScale = d3.scaleSqrt().domain([1000, 4000000]).range([3, 34]);
 const colorScale = d3.scaleLinear()
-  .domain([-0.85, -0.45, -0.15, 0, 0.15, 0.45, 0.85])
-  .range(["#2c6f7e", "#5a9fae", "#a8c8cf", "#dcdcdc", "#e9c4a3", "#d98a4f", "#b4632a"])
+  .domain([-0.55, -0.25, -0.10, 0, 0.10, 0.25, 0.55])
+  .range(["#2c6f7e","#5a9fae","#a8c8cf","#dcdcdc","#e9c4a3","#d98a4f","#b4632a"])
   .clamp(true);
 
-svg.append("text").attr("class","y-side").attr("x", 4).attr("y", margin.top + 18).text("MOST");
-svg.append("text").attr("class","y-side").attr("x", 4).attr("y", margin.top + 32).text("ADAPTABLE");
-svg.append("text").attr("class","y-side").attr("x", 24).attr("y", margin.top + plotH * 0.42)
-  .attr("text-anchor","end")
-  .attr("transform", `rotate(-90, 24, ${margin.top + plotH * 0.42})`).text("↑");
-svg.append("text").attr("class","y-side").attr("x", 4).attr("y", margin.top + plotH - 30).text("LEAST");
-svg.append("text").attr("class","y-side").attr("x", 4).attr("y", margin.top + plotH - 16).text("ADAPTABLE");
-svg.append("text").attr("class","y-side").attr("x", 24).attr("y", margin.top + plotH - 4)
-  .attr("text-anchor","end")
-  .attr("transform", `rotate(-90, 24, ${margin.top + plotH - 4})`).text("↓");
+// Side labels
+svg.append("text").attr("class","y-side").attr("x",4).attr("y",margin.top+18).text("MOST");
+svg.append("text").attr("class","y-side").attr("x",4).attr("y",margin.top+32).text("ADAPTABLE");
+svg.append("text").attr("class","y-side").attr("x",24).attr("y",margin.top+plotH*0.42)
+  .attr("text-anchor","end").attr("transform",`rotate(-90,24,${margin.top+plotH*0.42})`).text("↑");
+svg.append("text").attr("class","y-side").attr("x",4).attr("y",margin.top+plotH-30).text("LEAST");
+svg.append("text").attr("class","y-side").attr("x",4).attr("y",margin.top+plotH-16).text("ADAPTABLE");
+svg.append("text").attr("class","y-side").attr("x",24).attr("y",margin.top+plotH-4)
+  .attr("text-anchor","end").attr("transform",`rotate(-90,24,${margin.top+plotH-4})`).text("↓");
 
-const yAxis = d3.axisRight(y).tickValues([0, 0.2, 0.4, 0.6, 0.8, 1.0]).tickSize(0)
-  .tickFormat(d3.format("~"));
+const yAxis = d3.axisRight(y).tickValues([0,0.2,0.4,0.6,0.8,1.0]).tickSize(0).tickFormat(d3.format("~"));
 svg.append("g").attr("class","axis y-axis")
-  .attr("transform", `translate(${margin.left + plotW + 6}, 0)`)
-  .call(yAxis).call(g => g.select(".domain").remove());
+  .attr("transform",`translate(${margin.left+plotW+6},0)`).call(yAxis)
+  .call(g=>g.select(".domain").remove());
 
-const xAxis = d3.axisBottom(x).tickValues([0, 0.2, 0.4, 0.6, 0.8]).tickSize(0)
-  .tickFormat(d3.format("~"));
+const xAxis = d3.axisBottom(x).tickValues([0,0.2,0.4,0.6,0.8]).tickSize(0).tickFormat(d3.format("~"));
 svg.append("g").attr("class","axis x-axis")
-  .attr("transform", `translate(0, ${margin.top + plotH + 8})`)
-  .call(xAxis).call(g => g.select(".domain").remove());
+  .attr("transform",`translate(0,${margin.top+plotH+8})`).call(xAxis)
+  .call(g=>g.select(".domain").remove());
 
-const nodes = DATA.map(d => ({
-  ...d, x0: x(d.e), y0: y(d.a),
-  x: x(d.e) + (Math.random()-0.5)*2,
-  y: y(d.a) + (Math.random()-0.5)*2,
-  r: rScale(d.w)
-}));
-
+// Force-collide layout
+const nodes = DATA.map(d => ({ ...d, x0:x(d.e), y0:y(d.a),
+  x:x(d.e)+(Math.random()-0.5)*2, y:y(d.a)+(Math.random()-0.5)*2, r:rScale(d.w) }));
 const sim = d3.forceSimulation(nodes)
-  .force("x", d3.forceX(d => d.x0).strength(0.6))
-  .force("y", d3.forceY(d => d.y0).strength(0.6))
-  .force("collide", d3.forceCollide(d => d.r + 0.7).strength(0.85))
+  .force("x", d3.forceX(d=>d.x0).strength(0.6))
+  .force("y", d3.forceY(d=>d.y0).strength(0.6))
+  .force("collide", d3.forceCollide(d=>d.r+0.7).strength(0.85))
   .stop();
-for (let i = 0; i < 200; i++) sim.tick();
+for (let i=0;i<200;i++) sim.tick();
 
 const gB = svg.append("g").attr("class","bubbles");
 const bubbles = gB.selectAll("circle.bubble").data(nodes).enter().append("circle")
   .attr("class","bubble")
-  .attr("cx", d => d.x).attr("cy", d => d.y)
-  .attr("r", d => d.r)
-  .attr("fill", d => colorScale(d.vuln))
-  .attr("fill-opacity", 0.78)
-  .attr("stroke", d => d.lbl ? "#1a1a1a" : "none")
-  .attr("stroke-width", d => d.lbl ? 1.2 : 0);
+  .attr("cx",d=>d.x).attr("cy",d=>d.y).attr("r",d=>d.r)
+  .attr("fill",d=>colorScale(d.vuln))
+  .attr("fill-opacity",0.78)
+  .attr("stroke",d=>d.lbl?"#1a1a1a":"none")
+  .attr("stroke-width",d=>d.lbl?1.2:0);
 
+// Annotations for landmark occupations
 const annotations = [
-  {name:"Software developers", dx: 0, dy: -42, anchor:"middle"},
-  {name:"Firefighters", dx: -10, dy: 36, anchor:"start"},
-  {name:"Public relations specialists", dx: -10, dy: -30, anchor:"end"},
-  {name:"Registered nurses", dx: 12, dy: 36, anchor:"start"},
-  {name:"Writers and authors", dx: -10, dy: -30, anchor:"end"},
-  {name:"Customer service representatives", dx: -8, dy: -30, anchor:"end"},
-  {name:"Retail salespersons", dx: 0, dy: -36, anchor:"middle"},
-  {name:"Translators and interpreters", dx: -10, dy: -30, anchor:"end"},
-  {name:"Fast food workers", dx: 8, dy: -34, anchor:"start"},
-  {name:"Secretaries and admin assistants", dx: 0, dy: -34, anchor:"middle"}
+  {name:"Software Developers", dx:0, dy:-44, anchor:"middle"},
+  {name:"Firefighters", dx:-14, dy:36, anchor:"start"},
+  {name:"Public Relations Specialists", dx:-12, dy:-30, anchor:"end"},
+  {name:"Registered Nurses", dx:14, dy:36, anchor:"start"},
+  {name:"Writers and Authors", dx:-12, dy:-30, anchor:"end"},
+  {name:"Customer Service Representatives", dx:-12, dy:-30, anchor:"end"},
+  {name:"Retail Salespersons", dx:0, dy:-36, anchor:"middle"},
+  {name:"Interpreters and Translators", dx:-12, dy:-30, anchor:"end"},
+  {name:"Fast Food and Counter Workers", dx:8, dy:-32, anchor:"start"},
+  {name:"Secretaries", dx:0, dy:-36, anchor:"middle"}
 ];
-
 const gA = svg.append("g").attr("class","annot");
 annotations.forEach(a => {
-  const node = nodes.find(n => n.n === a.name);
+  const node = nodes.find(n => (n.lbl===a.name) || (n.n===a.name));
   if (!node) return;
   const tx = node.x + a.dx, ty = node.y + a.dy;
-  const labelText = a.name === "Translators and interpreters" ? "Interpreters and translators"
-                  : a.name === "Secretaries and admin assistants" ? "Secretaries"
-                  : a.name;
-  const path = `M ${tx} ${ty} Q ${(tx + node.x)/2} ${ty + 6} ${node.x} ${node.y - node.r - 1}`;
+  const path = `M ${tx} ${ty} Q ${(tx+node.x)/2} ${ty+6} ${node.x} ${node.y - node.r - 1}`;
   gA.append("path").attr("d", path);
-  gA.append("text").attr("x", tx).attr("y", ty - 2)
-    .attr("text-anchor", a.anchor).text(labelText);
+  gA.append("text").attr("x", tx).attr("y", ty-2).attr("text-anchor", a.anchor).text(a.name);
 });
 
+// Tooltip
 const tt = d3.select("#tt");
-function fmtNum(n) { return d3.format(",")(Math.round(n)); }
-function showTip(event, d) {
+function fmtNum(n){ return d3.format(",")(Math.round(n)); }
+function showTip(event, d){
   tt.html(`
     <span class="close">&times;</span>
     <div class="title">${d.n}</div>
+    <div class="soc">SOC ${d.soc}</div>
     <div class="row"><span class="lab">Vulnerability</span>
       <span class="val"><span class="pill ${d.cat}">${d.cat}</span></span></div>
-    <div class="row"><span class="lab">Number of workers</span>
+    <div class="row"><span class="lab">LM exposure</span>
+      <span class="val">${d.e.toFixed(2)} (AIOE z=${d.lmaioe.toFixed(2)})</span></div>
+    <div class="row"><span class="lab">Adaptability</span>
+      <span class="val">${d.a.toFixed(2)}</span></div>
+    <div class="row"><span class="lab">Workers (2024)</span>
       <span class="val">${fmtNum(d.w)}</span></div>
     <div class="row"><span class="lab">Percent women</span>
       <span class="val">${d.pw}%</span></div>
   `).classed("show", true);
   positionTip(event);
 }
-function positionTip(event) {
-  const wrapRect = chartDiv.node().getBoundingClientRect();
-  const px = event.clientX - wrapRect.left;
-  const py = event.clientY - wrapRect.top;
-  const ttNode = tt.node();
-  const w = ttNode.offsetWidth, h = ttNode.offsetHeight;
+function positionTip(event){
+  const r = chartDiv.node().getBoundingClientRect();
+  const px = event.clientX - r.left, py = event.clientY - r.top;
+  const ttn = tt.node();
   let left = px + 14, top = py + 14;
-  if (left + w > wrapRect.width) left = px - w - 14;
-  if (top + h > wrapRect.height) top = py - h - 14;
-  tt.style("left", left + "px").style("top", top + "px");
+  if (left + ttn.offsetWidth > r.width) left = px - ttn.offsetWidth - 14;
+  if (top + ttn.offsetHeight > r.height) top = py - ttn.offsetHeight - 14;
+  tt.style("left", left+"px").style("top", top+"px");
 }
-function hideTip() { tt.classed("show", false); }
-
-bubbles
-  .on("mouseenter", function(event, d) {
-    d3.select(this).attr("stroke", "#1a1a1a").attr("stroke-width", 1.4)
-      .attr("fill-opacity", 1);
+function hideTip(){ tt.classed("show", false); }
+bubbles.on("mouseenter", function(event,d){
+    d3.select(this).attr("stroke","#1a1a1a").attr("stroke-width",1.4).attr("fill-opacity",1);
     showTip(event, d);
   })
-  .on("mousemove", function(event) { positionTip(event); })
-  .on("mouseleave", function(event, d) {
-    d3.select(this).attr("stroke", d.lbl ? "#1a1a1a" : "none")
-      .attr("stroke-width", d.lbl ? 1.2 : 0)
-      .attr("fill-opacity", 0.78);
+  .on("mousemove", function(event){ positionTip(event); })
+  .on("mouseleave", function(event,d){
+    d3.select(this).attr("stroke", d.lbl?"#1a1a1a":"none")
+      .attr("stroke-width", d.lbl?1.2:0).attr("fill-opacity",0.78);
     hideTip();
   });
 
-const input = document.getElementById("search");
-input.addEventListener("input", () => {
-  const q = input.value.trim().toLowerCase();
-  if (!q) { bubbles.classed("dim", false).classed("match", false); return; }
-  bubbles.each(function(d) {
-    const isMatch = d.n.toLowerCase().includes(q);
-    d3.select(this).classed("dim", !isMatch).classed("match", isMatch);
+// Search
+document.getElementById("search").addEventListener("input", e => {
+  const q = e.target.value.trim().toLowerCase();
+  if (!q){ bubbles.classed("dim",false).classed("match",false); return; }
+  bubbles.each(function(d){
+    const isMatch = d.n.toLowerCase().includes(q) || d.soc.includes(q);
+    d3.select(this).classed("dim",!isMatch).classed("match",isMatch);
   });
 });
 </script>
