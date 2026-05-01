@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Jobs least and most vulnerable to AI</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+  :root {
+    --bg: #ffffff;
+    --ink: #1a1a1a;
+    --muted: #6b6b6b;
+    --line: #d6d6d6;
+    --hl: #111111;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+    font-family: Georgia, "Times New Roman", serif; }
+  .wrap { max-width: 1080px; margin: 24px auto; padding: 0 16px; }
+  h1 { text-align: center; font-size: 22px; margin: 8px 0 16px; font-weight: 700; }
+  .topbar { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 16px;
+    margin-bottom: 8px; }
+  .search-wrap { position: relative; width: 100%; max-width: 560px; margin: 0 auto;
+    grid-column: 1 / 2; }
+  .search { width: 100%; padding: 12px 40px 12px 16px; font-size: 15px;
+    font-family: inherit; border: 1px solid var(--line); border-radius: 4px; background: #fafafa;
+    color: var(--ink); }
+  .search::placeholder { color: #9a9a9a; }
+  .search-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    color: #9a9a9a; pointer-events: none; }
+  .legend { display: flex; align-items: center; gap: 10px; font-family: Helvetica, Arial, sans-serif;
+    font-size: 12px; color: var(--ink); white-space: nowrap; }
+  .legend svg { display: block; }
+  .axis-labels { display: flex; justify-content: space-between; align-items: center;
+    font-family: Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 700;
+    letter-spacing: 0.05em; color: var(--ink); padding: 6px 56px 0 56px; }
+  .axis-labels span.arrow { font-weight: 400; }
+  .chart { position: relative; }
+  svg.main { display: block; width: 100%; height: auto; }
+  .y-side { font-family: Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.05em; fill: var(--ink); }
+  .axis text { font-family: Helvetica, Arial, sans-serif; font-size: 11px; fill: var(--muted); }
+  .axis path, .axis line { stroke: #e5e5e5; }
+  .annot text { font-family: Helvetica, Arial, sans-serif; font-size: 12px; fill: var(--ink); }
+  .annot path { fill: none; stroke: #1a1a1a; stroke-width: 1; }
+  .bubble { cursor: pointer; transition: stroke-width 120ms ease, opacity 200ms ease; }
+  .bubble.dim { opacity: 0.12; }
+  .bubble.match { stroke: #111; stroke-width: 1.5; }
+  .source { font-family: Helvetica, Arial, sans-serif; font-size: 11px; color: var(--muted);
+    margin-top: 6px; padding-left: 56px; }
+  .tooltip { position: absolute; pointer-events: none; background: #fff;
+    border: 1px solid #c8c8c8; box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+    padding: 10px 12px; min-width: 220px; font-family: Helvetica, Arial, sans-serif;
+    font-size: 12px; color: var(--ink); border-radius: 2px; opacity: 0;
+    transition: opacity 100ms ease; z-index: 5; }
+  .tooltip.show { opacity: 1; }
+  .tooltip .title { font-weight: 700; font-size: 13px; margin-bottom: 8px; padding-right: 18px;
+    line-height: 1.25; }
+  .tooltip .row { display: flex; justify-content: space-between; gap: 10px;
+    border-top: 1px solid #ececec; padding: 5px 0; }
+  .tooltip .row:first-of-type { border-top: 1px solid #ececec; }
+  .tooltip .lab { color: #444; }
+  .tooltip .val { font-weight: 600; }
+  .tooltip .pill { display: inline-block; padding: 2px 8px; border-radius: 3px; font-weight: 700;
+    color: #fff; font-size: 11px; letter-spacing: 0.03em; }
+  .tooltip .close { position: absolute; right: 8px; top: 6px; width: 14px; height: 14px;
+    color: #888; font-size: 14px; line-height: 14px; cursor: default; }
+  .pill.LOW { background: #4f8a9a; }
+  .pill.MEDIUM { background: #c2c2c2; color: #1a1a1a; }
+  .pill.HIGH { background: #d98244; }
+  .source a { color: inherit; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Jobs least and most vulnerable to AI</h1>
+
+  <div class="topbar">
+    <div class="search-wrap">
+      <input id="search" class="search" type="text" placeholder="Find your job" autocomplete="off"/>
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+    </div>
+    <div class="legend" aria-label="bubble size legend">
+      <svg width="64" height="44" viewBox="0 0 64 44">
+        <circle cx="22" cy="22" r="20" fill="none" stroke="#777"/>
+        <circle cx="22" cy="34" r="7" fill="none" stroke="#777"/>
+      </svg>
+      <div>
+        <div>4M workers</div>
+        <div style="margin-top: 8px;">100k</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="axis-labels">
+    <div><span class="arrow">&larr;</span> &nbsp; LEAST EXPOSED</div>
+    <div>MOST EXPOSED &nbsp; <span class="arrow">&rarr;</span></div>
+  </div>
+
+  <div class="chart" id="chart"></div>
+
+  <div class="source">Sources: GovAI and Brookings Institution</div>
+</div>
+
+<div class="tooltip" id="tt"></div>
+
+<script>
+const DATA = [
+  {n:"Software developers", e:0.46, a:0.93, w:1656880, pw:21, lbl:1},
+  {n:"Web developers", e:0.50, a:0.88, w:198400, pw:30},
+  {n:"Computer systems analysts", e:0.55, a:0.86, w:528900, pw:36},
+  {n:"Data scientists", e:0.58, a:0.90, w:165500, pw:31},
+  {n:"Database administrators", e:0.52, a:0.83, w:131000, pw:34},
+  {n:"Information security analysts", e:0.49, a:0.87, w:168900, pw:25},
+  {n:"Network architects", e:0.44, a:0.84, w:175000, pw:14},
+  {n:"Computer hardware engineers", e:0.42, a:0.86, w:80100, pw:18},
+  {n:"Aerospace engineers", e:0.32, a:0.91, w:67000, pw:13},
+  {n:"Mechanical engineers", e:0.30, a:0.88, w:301400, pw:10},
+  {n:"Electrical engineers", e:0.34, a:0.88, w:188400, pw:11},
+  {n:"Chemical engineers", e:0.30, a:0.89, w:32000, pw:21},
+  {n:"Civil engineers", e:0.28, a:0.84, w:329200, pw:17},
+  {n:"Industrial engineers", e:0.36, a:0.83, w:312800, pw:24},
+  {n:"Architects", e:0.34, a:0.82, w:114600, pw:28},
+  {n:"Statisticians", e:0.62, a:0.90, w:43800, pw:48},
+  {n:"Mathematicians", e:0.58, a:0.89, w:2200, pw:44},
+  {n:"Operations research analysts", e:0.55, a:0.85, w:113700, pw:48},
+  {n:"Actuaries", e:0.60, a:0.86, w:27300, pw:35},
+  {n:"Economists", e:0.65, a:0.84, w:20300, pw:32},
+  {n:"Physicists", e:0.40, a:0.91, w:18900, pw:21},
+  {n:"Astronomers", e:0.42, a:0.92, w:2100, pw:32},
+  {n:"Chemists", e:0.36, a:0.85, w:81700, pw:42},
+  {n:"Biochemists and biophysicists", e:0.38, a:0.86, w:33500, pw:50},
+  {n:"Microbiologists", e:0.28, a:0.83, w:21000, pw:54},
+  {n:"Epidemiologists", e:0.34, a:0.85, w:9900, pw:64},
+  {n:"Biomedical engineers", e:0.32, a:0.88, w:21300, pw:37},
+  {n:"Environmental scientists", e:0.26, a:0.81, w:88300, pw:39},
+  {n:"Geoscientists", e:0.30, a:0.82, w:30400, pw:30},
+  {n:"Atmospheric scientists", e:0.36, a:0.83, w:9300, pw:33},
+  {n:"Surgeons", e:0.18, a:0.96, w:34390, pw:23},
+  {n:"Physicians", e:0.30, a:0.92, w:761700, pw:38},
+  {n:"Dentists", e:0.16, a:0.91, w:139200, pw:36},
+  {n:"Pharmacists", e:0.42, a:0.78, w:331700, pw:62},
+  {n:"Veterinarians", e:0.18, a:0.90, w:78700, pw:65},
+  {n:"Registered nurses", e:0.36, a:0.78, w:3172500, pw:87, lbl:1},
+  {n:"Nurse practitioners", e:0.30, a:0.85, w:262500, pw:88},
+  {n:"Physician assistants", e:0.32, a:0.84, w:139100, pw:69},
+  {n:"Physical therapists", e:0.10, a:0.86, w:225200, pw:65},
+  {n:"Occupational therapists", e:0.12, a:0.83, w:130400, pw:88},
+  {n:"Respiratory therapists", e:0.14, a:0.74, w:131400, pw:62},
+  {n:"Speech-language pathologists", e:0.22, a:0.82, w:160100, pw:96},
+  {n:"Dental hygienists", e:0.14, a:0.66, w:215000, pw:96},
+  {n:"Medical assistants", e:0.30, a:0.50, w:734200, pw:91},
+  {n:"Home health aides", e:0.06, a:0.34, w:3470000, pw:87},
+  {n:"Personal care aides", e:0.06, a:0.32, w:2620000, pw:84},
+  {n:"Nursing assistants", e:0.08, a:0.40, w:1316000, pw:88},
+  {n:"EMTs and paramedics", e:0.10, a:0.78, w:265200, pw:34},
+  {n:"Psychologists", e:0.34, a:0.84, w:181600, pw:71},
+  {n:"Mental health counselors", e:0.30, a:0.78, w:368200, pw:73},
+  {n:"Social workers", e:0.30, a:0.72, w:715600, pw:82},
+  {n:"Occupational health and safety specialists", e:0.28, a:0.70, w:131500, pw:42},
+  {n:"Firefighters", e:0.04, a:0.86, w:328500, pw:5, lbl:1},
+  {n:"Police officers", e:0.10, a:0.78, w:680300, pw:14},
+  {n:"Detectives and criminal investigators", e:0.22, a:0.82, w:108500, pw:23},
+  {n:"Air traffic controllers", e:0.30, a:0.76, w:23400, pw:23},
+  {n:"Airline pilots", e:0.18, a:0.88, w:84100, pw:9},
+  {n:"Ship captains and mates", e:0.10, a:0.74, w:36400, pw:9},
+  {n:"Locomotive engineers", e:0.10, a:0.50, w:34900, pw:5},
+  {n:"Construction laborers", e:0.04, a:0.30, w:1100000, pw:4},
+  {n:"Carpenters", e:0.06, a:0.42, w:710900, pw:3},
+  {n:"Electricians", e:0.08, a:0.62, w:730200, pw:3},
+  {n:"Plumbers, pipefitters", e:0.06, a:0.58, w:469000, pw:3},
+  {n:"HVAC technicians", e:0.08, a:0.60, w:415800, pw:2},
+  {n:"Brick masons", e:0.04, a:0.36, w:62700, pw:2},
+  {n:"Roofers", e:0.04, a:0.20, w:142900, pw:2},
+  {n:"Drywall installers", e:0.04, a:0.22, w:96500, pw:2},
+  {n:"Painters, construction", e:0.06, a:0.30, w:218900, pw:7},
+  {n:"Landscaping workers", e:0.04, a:0.18, w:892800, pw:6},
+  {n:"Tree trimmers and pruners", e:0.04, a:0.32, w:55300, pw:3},
+  {n:"Auto mechanics", e:0.10, a:0.54, w:711400, pw:2},
+  {n:"Heavy equipment mechanics", e:0.08, a:0.62, w:189100, pw:3},
+  {n:"Aircraft mechanics", e:0.10, a:0.78, w:144700, pw:3},
+  {n:"Industrial machinery mechanics", e:0.08, a:0.66, w:407900, pw:5},
+  {n:"Welders, cutters", e:0.10, a:0.42, w:447100, pw:5},
+  {n:"Machinists", e:0.16, a:0.50, w:299100, pw:6},
+  {n:"Tool and die makers", e:0.18, a:0.62, w:60100, pw:3},
+  {n:"Heavy and tractor-trailer truck drivers", e:0.08, a:0.30, w:2118200, pw:9},
+  {n:"Light truck drivers", e:0.08, a:0.28, w:1239800, pw:13},
+  {n:"Delivery drivers", e:0.10, a:0.22, w:1545300, pw:14},
+  {n:"Bus drivers", e:0.10, a:0.30, w:643700, pw:42},
+  {n:"Taxi drivers and chauffeurs", e:0.16, a:0.28, w:351100, pw:18},
+  {n:"Material moving workers", e:0.06, a:0.20, w:861500, pw:18},
+  {n:"Forklift operators", e:0.06, a:0.30, w:782500, pw:14},
+  {n:"Couriers and messengers", e:0.10, a:0.18, w:163400, pw:21},
+  {n:"Secretaries and admin assistants", e:0.60, a:0.16, w:1857300, pw:91, lbl:1},
+  {n:"Executive secretaries", e:0.58, a:0.30, w:495400, pw:92},
+  {n:"Receptionists", e:0.54, a:0.22, w:1029200, pw:90},
+  {n:"Bookkeeping and accounting clerks", e:0.66, a:0.32, w:1499300, pw:86},
+  {n:"Payroll clerks", e:0.70, a:0.34, w:148000, pw:88},
+  {n:"Billing clerks", e:0.68, a:0.30, w:482000, pw:90},
+  {n:"Data entry keyers", e:0.72, a:0.16, w:159200, pw:78},
+  {n:"Word processors and typists", e:0.78, a:0.20, w:42100, pw:90},
+  {n:"File clerks", e:0.62, a:0.20, w:88600, pw:74},
+  {n:"Office clerks, general", e:0.50, a:0.22, w:2515300, pw:79},
+  {n:"Customer service representatives", e:0.65, a:0.55, w:2845800, pw:65, lbl:1},
+  {n:"Telemarketers", e:0.78, a:0.20, w:88100, pw:60},
+  {n:"Switchboard operators", e:0.74, a:0.18, w:55800, pw:78},
+  {n:"Insurance claims clerks", e:0.62, a:0.32, w:212400, pw:65},
+  {n:"Insurance underwriters", e:0.74, a:0.62, w:108600, pw:60},
+  {n:"Loan officers", e:0.66, a:0.62, w:308000, pw:54},
+  {n:"Credit analysts", e:0.72, a:0.58, w:73800, pw:48},
+  {n:"Tax preparers", e:0.74, a:0.46, w:83000, pw:65},
+  {n:"Accountants and auditors", e:0.62, a:0.74, w:1424000, pw:58},
+  {n:"Financial analysts", e:0.66, a:0.78, w:373600, pw:38},
+  {n:"Personal financial advisors", e:0.50, a:0.76, w:330300, pw:32},
+  {n:"Budget analysts", e:0.60, a:0.74, w:54200, pw:55},
+  {n:"Cost estimators", e:0.42, a:0.64, w:226100, pw:13},
+  {n:"Procurement clerks", e:0.58, a:0.30, w:73200, pw:60},
+  {n:"Human resources specialists", e:0.46, a:0.72, w:866400, pw:67},
+  {n:"Compensation analysts", e:0.62, a:0.72, w:18600, pw:62},
+  {n:"Training specialists", e:0.40, a:0.74, w:382800, pw:60},
+  {n:"Public relations specialists", e:0.78, a:0.86, w:281200, pw:64, lbl:1},
+  {n:"Writers and authors", e:0.78, a:0.62, w:131200, pw:55, lbl:1},
+  {n:"Editors", e:0.74, a:0.66, w:103800, pw:62},
+  {n:"Reporters and journalists", e:0.66, a:0.68, w:46300, pw:50},
+  {n:"Technical writers", e:0.72, a:0.72, w:55700, pw:54},
+  {n:"News analysts", e:0.70, a:0.74, w:43400, pw:46},
+  {n:"Translators and interpreters", e:0.80, a:0.32, w:78800, pw:60, lbl:1},
+  {n:"Copywriters", e:0.82, a:0.60, w:62000, pw:58},
+  {n:"Proofreaders", e:0.80, a:0.34, w:8800, pw:70},
+  {n:"Court reporters", e:0.70, a:0.36, w:18900, pw:74},
+  {n:"Photographers", e:0.46, a:0.50, w:122000, pw:46},
+  {n:"Graphic designers", e:0.66, a:0.66, w:233700, pw:54},
+  {n:"Web designers", e:0.62, a:0.78, w:122900, pw:42},
+  {n:"Film and video editors", e:0.50, a:0.62, w:43000, pw:30},
+  {n:"Sound engineering technicians", e:0.36, a:0.62, w:13700, pw:14},
+  {n:"Broadcast technicians", e:0.40, a:0.50, w:32600, pw:18},
+  {n:"Elementary and middle school teachers", e:0.34, a:0.78, w:2027880, pw:81},
+  {n:"High school teachers", e:0.42, a:0.78, w:1057300, pw:60},
+  {n:"Postsecondary teachers", e:0.50, a:0.85, w:1400000, pw:48},
+  {n:"Special education teachers", e:0.30, a:0.80, w:438400, pw:86},
+  {n:"Preschool teachers", e:0.18, a:0.50, w:529400, pw:97},
+  {n:"Childcare workers", e:0.10, a:0.36, w:917500, pw:94},
+  {n:"Teaching assistants", e:0.30, a:0.40, w:1352300, pw:89},
+  {n:"Librarians", e:0.50, a:0.62, w:128300, pw:80},
+  {n:"Tutors", e:0.38, a:0.68, w:127600, pw:65},
+  {n:"Lawyers", e:0.66, a:0.86, w:813900, pw:39},
+  {n:"Judges", e:0.40, a:0.84, w:43000, pw:41},
+  {n:"Paralegals", e:0.70, a:0.46, w:373300, pw:84},
+  {n:"Legal secretaries", e:0.66, a:0.20, w:175600, pw:91},
+  {n:"Title examiners", e:0.62, a:0.30, w:55100, pw:76},
+  {n:"Retail salespersons", e:0.40, a:0.34, w:3625900, pw:51, lbl:1},
+  {n:"Cashiers", e:0.30, a:0.18, w:3304900, pw:71},
+  {n:"Wholesale and manufacturing sales reps", e:0.40, a:0.66, w:1481400, pw:28},
+  {n:"Real estate agents", e:0.42, a:0.74, w:475300, pw:55},
+  {n:"Insurance sales agents", e:0.62, a:0.62, w:528300, pw:50},
+  {n:"Securities and commodities sales agents", e:0.66, a:0.78, w:434400, pw:31},
+  {n:"Travel agents", e:0.74, a:0.40, w:60500, pw:80},
+  {n:"Door-to-door sales workers", e:0.32, a:0.20, w:50000, pw:38},
+  {n:"Counter and rental clerks", e:0.32, a:0.26, w:469100, pw:50},
+  {n:"Fast food workers", e:0.10, a:0.18, w:3676600, pw:60, lbl:1},
+  {n:"Cooks, restaurant", e:0.12, a:0.32, w:1394100, pw:38},
+  {n:"Cooks, fast food", e:0.10, a:0.16, w:553600, pw:46},
+  {n:"Waiters and waitresses", e:0.18, a:0.24, w:2197300, pw:69},
+  {n:"Bartenders", e:0.16, a:0.28, w:643500, pw:55},
+  {n:"Dishwashers", e:0.06, a:0.10, w:514400, pw:23},
+  {n:"Food prep workers", e:0.10, a:0.16, w:887900, pw:54},
+  {n:"Hosts and hostesses", e:0.30, a:0.30, w:401200, pw:80},
+  {n:"Bakers", e:0.18, a:0.40, w:218900, pw:62},
+  {n:"Butchers", e:0.10, a:0.36, w:138900, pw:24},
+  {n:"Hairdressers and cosmetologists", e:0.18, a:0.50, w:583500, pw:91},
+  {n:"Manicurists", e:0.14, a:0.30, w:155400, pw:83},
+  {n:"Massage therapists", e:0.06, a:0.62, w:185300, pw:81},
+  {n:"Childcare providers, family", e:0.08, a:0.38, w:103000, pw:96},
+  {n:"Funeral directors", e:0.20, a:0.66, w:30600, pw:42},
+  {n:"Fitness trainers", e:0.20, a:0.62, w:316800, pw:55},
+  {n:"Recreation workers", e:0.20, a:0.50, w:357300, pw:62},
+  {n:"Tour guides", e:0.30, a:0.42, w:38200, pw:54},
+  {n:"Animal trainers", e:0.10, a:0.62, w:13100, pw:62},
+  {n:"Janitors and cleaners", e:0.06, a:0.16, w:2089500, pw:35},
+  {n:"Maids and housekeeping cleaners", e:0.04, a:0.14, w:881300, pw:88},
+  {n:"Pest control workers", e:0.06, a:0.42, w:88200, pw:6},
+  {n:"Grounds maintenance workers", e:0.04, a:0.20, w:1300000, pw:6},
+  {n:"Assemblers and fabricators", e:0.18, a:0.30, w:1639300, pw:38},
+  {n:"Sewing machine operators", e:0.22, a:0.20, w:108100, pw:71},
+  {n:"Printing press operators", e:0.30, a:0.36, w:140100, pw:18},
+  {n:"Packaging machine operators", e:0.16, a:0.24, w:382600, pw:42},
+  {n:"Industrial production managers", e:0.40, a:0.78, w:222400, pw:24},
+  {n:"Farmworkers, crops", e:0.04, a:0.16, w:380200, pw:24},
+  {n:"Farmers and ranchers", e:0.16, a:0.62, w:902200, pw:30},
+  {n:"Agricultural inspectors", e:0.28, a:0.62, w:14300, pw:42},
+  {n:"Animal caretakers", e:0.06, a:0.30, w:336500, pw:80},
+  {n:"Chief executives", e:0.62, a:0.92, w:200800, pw:29},
+  {n:"General and operations managers", e:0.50, a:0.84, w:3477200, pw:32},
+  {n:"Marketing managers", e:0.66, a:0.84, w:316800, pw:55},
+  {n:"Sales managers", e:0.50, a:0.82, w:572800, pw:32},
+  {n:"Financial managers", e:0.62, a:0.86, w:730800, pw:54},
+  {n:"Compensation and benefits managers", e:0.58, a:0.78, w:18800, pw:62},
+  {n:"Human resources managers", e:0.50, a:0.84, w:179700, pw:73},
+  {n:"Construction managers", e:0.20, a:0.80, w:471800, pw:8},
+  {n:"Architectural and engineering managers", e:0.40, a:0.86, w:209900, pw:13},
+  {n:"Computer and information systems managers", e:0.52, a:0.90, w:556700, pw:30},
+  {n:"Medical and health services managers", e:0.40, a:0.82, w:483800, pw:74},
+  {n:"Education administrators", e:0.40, a:0.80, w:469000, pw:64},
+  {n:"Lodging managers", e:0.34, a:0.66, w:39400, pw:43},
+  {n:"Food service managers", e:0.22, a:0.66, w:235000, pw:46},
+  {n:"Postal service mail carriers", e:0.10, a:0.20, w:336500, pw:39},
+  {n:"Postal service clerks", e:0.42, a:0.22, w:88500, pw:46},
+  {n:"Mail sorters", e:0.36, a:0.18, w:99500, pw:42},
+  {n:"Loan interviewers", e:0.66, a:0.32, w:218400, pw:64},
+  {n:"Survey researchers", e:0.66, a:0.62, w:13900, pw:60},
+  {n:"Market research analysts", e:0.70, a:0.78, w:761500, pw:55},
+  {n:"Compliance officers", e:0.50, a:0.74, w:344900, pw:54},
+  {n:"Logisticians", e:0.42, a:0.74, w:208700, pw:46},
+  {n:"Management analysts", e:0.50, a:0.82, w:990600, pw:43},
+  {n:"Urban and regional planners", e:0.40, a:0.78, w:43400, pw:42},
+  {n:"Interior designers", e:0.50, a:0.62, w:80400, pw:73},
+  {n:"Fashion designers", e:0.62, a:0.58, w:24800, pw:76},
+  {n:"Industrial designers", e:0.46, a:0.74, w:35800, pw:34},
+  {n:"Set and exhibit designers", e:0.50, a:0.66, w:13400, pw:54},
+  {n:"Choreographers", e:0.30, a:0.66, w:5600, pw:62},
+  {n:"Dancers", e:0.10, a:0.50, w:11400, pw:64},
+  {n:"Musicians", e:0.34, a:0.66, w:36900, pw:25},
+  {n:"Actors", e:0.40, a:0.62, w:51800, pw:46},
+  {n:"Producers and directors", e:0.50, a:0.78, w:159400, pw:38},
+  {n:"Coaches and scouts", e:0.16, a:0.56, w:332700, pw:30},
+  {n:"Athletes", e:0.10, a:0.62, w:14000, pw:32},
+  {n:"Umpires and referees", e:0.18, a:0.46, w:21800, pw:8},
+  {n:"Clergy", e:0.36, a:0.78, w:248800, pw:21},
+  {n:"Veterinary technologists", e:0.16, a:0.64, w:121700, pw:90},
+  {n:"Audiologists", e:0.30, a:0.78, w:14400, pw:78},
+  {n:"Optometrists", e:0.30, a:0.82, w:46500, pw:48},
+  {n:"Chiropractors", e:0.10, a:0.78, w:53700, pw:32},
+  {n:"Dietitians", e:0.34, a:0.74, w:73000, pw:88},
+  {n:"Athletic trainers", e:0.16, a:0.74, w:33800, pw:54},
+  {n:"Surveyors", e:0.30, a:0.62, w:50000, pw:9},
+  {n:"Drafters", e:0.40, a:0.50, w:170800, pw:18},
+  {n:"Cartographers", e:0.50, a:0.62, w:13700, pw:31},
+  {n:"Photogrammetrists", e:0.52, a:0.62, w:6900, pw:30},
+  {n:"Crane operators", e:0.06, a:0.50, w:43500, pw:3},
+  {n:"Boilermakers", e:0.06, a:0.62, w:11700, pw:3},
+  {n:"Insulation workers", e:0.04, a:0.30, w:55700, pw:2},
+  {n:"Pipelayers", e:0.04, a:0.34, w:35800, pw:2},
+  {n:"Stonemasons", e:0.04, a:0.36, w:8400, pw:2},
+  {n:"Chefs and head cooks", e:0.18, a:0.60, w:184600, pw:25},
+  {n:"Models", e:0.20, a:0.40, w:6900, pw:80}
+];
+
+DATA.forEach(d => {
+  d.vuln = d.e - d.a;
+  d.cat = d.vuln > 0.15 ? "HIGH" : (d.vuln < -0.15 ? "LOW" : "MEDIUM");
+});
+
+const W = 1080, H = 760;
+const margin = {top: 8, right: 56, bottom: 56, left: 56};
+const plotW = W - margin.left - margin.right;
+const plotH = H - margin.top - margin.bottom;
+
+const chartDiv = d3.select("#chart");
+const svg = chartDiv.append("svg").attr("class","main")
+  .attr("viewBox", `0 0 ${W} ${H}`).attr("preserveAspectRatio","xMidYMid meet");
+
+const x = d3.scaleLinear().domain([0, 0.85]).range([margin.left, margin.left + plotW]);
+const y = d3.scaleLinear().domain([0, 1]).range([margin.top + plotH, margin.top]);
+const rScale = d3.scaleSqrt().domain([1000, 4000000]).range([3, 34]);
+const colorScale = d3.scaleLinear()
+  .domain([-0.85, -0.45, -0.15, 0, 0.15, 0.45, 0.85])
+  .range(["#2c6f7e", "#5a9fae", "#a8c8cf", "#dcdcdc", "#e9c4a3", "#d98a4f", "#b4632a"])
+  .clamp(true);
+
+svg.append("text").attr("class","y-side").attr("x", 4).attr("y", margin.top + 18).text("MOST");
+svg.append("text").attr("class","y-side").attr("x", 4).attr("y", margin.top + 32).text("ADAPTABLE");
+svg.append("text").attr("class","y-side").attr("x", 24).attr("y", margin.top + plotH * 0.42)
+  .attr("text-anchor","end")
+  .attr("transform", `rotate(-90, 24, ${margin.top + plotH * 0.42})`).text("↑");
+svg.append("text").attr("class","y-side").attr("x", 4).attr("y", margin.top + plotH - 30).text("LEAST");
+svg.append("text").attr("class","y-side").attr("x", 4).attr("y", margin.top + plotH - 16).text("ADAPTABLE");
+svg.append("text").attr("class","y-side").attr("x", 24).attr("y", margin.top + plotH - 4)
+  .attr("text-anchor","end")
+  .attr("transform", `rotate(-90, 24, ${margin.top + plotH - 4})`).text("↓");
+
+const yAxis = d3.axisRight(y).tickValues([0, 0.2, 0.4, 0.6, 0.8, 1.0]).tickSize(0)
+  .tickFormat(d3.format("~"));
+svg.append("g").attr("class","axis y-axis")
+  .attr("transform", `translate(${margin.left + plotW + 6}, 0)`)
+  .call(yAxis).call(g => g.select(".domain").remove());
+
+const xAxis = d3.axisBottom(x).tickValues([0, 0.2, 0.4, 0.6, 0.8]).tickSize(0)
+  .tickFormat(d3.format("~"));
+svg.append("g").attr("class","axis x-axis")
+  .attr("transform", `translate(0, ${margin.top + plotH + 8})`)
+  .call(xAxis).call(g => g.select(".domain").remove());
+
+const nodes = DATA.map(d => ({
+  ...d, x0: x(d.e), y0: y(d.a),
+  x: x(d.e) + (Math.random()-0.5)*2,
+  y: y(d.a) + (Math.random()-0.5)*2,
+  r: rScale(d.w)
+}));
+
+const sim = d3.forceSimulation(nodes)
+  .force("x", d3.forceX(d => d.x0).strength(0.6))
+  .force("y", d3.forceY(d => d.y0).strength(0.6))
+  .force("collide", d3.forceCollide(d => d.r + 0.7).strength(0.85))
+  .stop();
+for (let i = 0; i < 200; i++) sim.tick();
+
+const gB = svg.append("g").attr("class","bubbles");
+const bubbles = gB.selectAll("circle.bubble").data(nodes).enter().append("circle")
+  .attr("class","bubble")
+  .attr("cx", d => d.x).attr("cy", d => d.y)
+  .attr("r", d => d.r)
+  .attr("fill", d => colorScale(d.vuln))
+  .attr("fill-opacity", 0.78)
+  .attr("stroke", d => d.lbl ? "#1a1a1a" : "none")
+  .attr("stroke-width", d => d.lbl ? 1.2 : 0);
+
+const annotations = [
+  {name:"Software developers", dx: 0, dy: -42, anchor:"middle"},
+  {name:"Firefighters", dx: -10, dy: 36, anchor:"start"},
+  {name:"Public relations specialists", dx: -10, dy: -30, anchor:"end"},
+  {name:"Registered nurses", dx: 12, dy: 36, anchor:"start"},
+  {name:"Writers and authors", dx: -10, dy: -30, anchor:"end"},
+  {name:"Customer service representatives", dx: -8, dy: -30, anchor:"end"},
+  {name:"Retail salespersons", dx: 0, dy: -36, anchor:"middle"},
+  {name:"Translators and interpreters", dx: -10, dy: -30, anchor:"end"},
+  {name:"Fast food workers", dx: 8, dy: -34, anchor:"start"},
+  {name:"Secretaries and admin assistants", dx: 0, dy: -34, anchor:"middle"}
+];
+
+const gA = svg.append("g").attr("class","annot");
+annotations.forEach(a => {
+  const node = nodes.find(n => n.n === a.name);
+  if (!node) return;
+  const tx = node.x + a.dx, ty = node.y + a.dy;
+  const labelText = a.name === "Translators and interpreters" ? "Interpreters and translators"
+                  : a.name === "Secretaries and admin assistants" ? "Secretaries"
+                  : a.name;
+  const path = `M ${tx} ${ty} Q ${(tx + node.x)/2} ${ty + 6} ${node.x} ${node.y - node.r - 1}`;
+  gA.append("path").attr("d", path);
+  gA.append("text").attr("x", tx).attr("y", ty - 2)
+    .attr("text-anchor", a.anchor).text(labelText);
+});
+
+const tt = d3.select("#tt");
+function fmtNum(n) { return d3.format(",")(Math.round(n)); }
+function showTip(event, d) {
+  tt.html(`
+    <span class="close">&times;</span>
+    <div class="title">${d.n}</div>
+    <div class="row"><span class="lab">Vulnerability</span>
+      <span class="val"><span class="pill ${d.cat}">${d.cat}</span></span></div>
+    <div class="row"><span class="lab">Number of workers</span>
+      <span class="val">${fmtNum(d.w)}</span></div>
+    <div class="row"><span class="lab">Percent women</span>
+      <span class="val">${d.pw}%</span></div>
+  `).classed("show", true);
+  positionTip(event);
+}
+function positionTip(event) {
+  const wrapRect = chartDiv.node().getBoundingClientRect();
+  const px = event.clientX - wrapRect.left;
+  const py = event.clientY - wrapRect.top;
+  const ttNode = tt.node();
+  const w = ttNode.offsetWidth, h = ttNode.offsetHeight;
+  let left = px + 14, top = py + 14;
+  if (left + w > wrapRect.width) left = px - w - 14;
+  if (top + h > wrapRect.height) top = py - h - 14;
+  tt.style("left", left + "px").style("top", top + "px");
+}
+function hideTip() { tt.classed("show", false); }
+
+bubbles
+  .on("mouseenter", function(event, d) {
+    d3.select(this).attr("stroke", "#1a1a1a").attr("stroke-width", 1.4)
+      .attr("fill-opacity", 1);
+    showTip(event, d);
+  })
+  .on("mousemove", function(event) { positionTip(event); })
+  .on("mouseleave", function(event, d) {
+    d3.select(this).attr("stroke", d.lbl ? "#1a1a1a" : "none")
+      .attr("stroke-width", d.lbl ? 1.2 : 0)
+      .attr("fill-opacity", 0.78);
+    hideTip();
+  });
+
+const input = document.getElementById("search");
+input.addEventListener("input", () => {
+  const q = input.value.trim().toLowerCase();
+  if (!q) { bubbles.classed("dim", false).classed("match", false); return; }
+  bubbles.each(function(d) {
+    const isMatch = d.n.toLowerCase().includes(q);
+    d3.select(this).classed("dim", !isMatch).classed("match", isMatch);
+  });
+});
+</script>
+</body>
+</html>
